@@ -103,6 +103,9 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
 
   final TextEditingController promptController = TextEditingController();
   
+  // Store text existing before mic recording starts, so voice can append to it
+  String _promptBeforeMic = '';
+  
   // Heartbeat to detect app freeze/crash
   Timer? _heartbeatTimer;
   DateTime _lastHeartbeat = DateTime.now();
@@ -543,8 +546,57 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
       // Enforce single-selection per category except Accessories (can stack)
       final newPrompt = _getPrompt(category, option);
 
-      // If this category is NOT accessories, remove any previous fragment for this category
-      if (category != EditCategory.accessories) {
+      // Special handling for full outfit: clear individual clothing items it replaces
+      if (category == EditCategory.fullOutfit) {
+        // Full outfit replaces top, bottom, shoes
+        for (final clothingCat in [EditCategory.top, EditCategory.bottom, EditCategory.shoes]) {
+          final prevIdx = selectedOptions[clothingCat];
+          if (prevIdx != null) {
+            try {
+              final prevPrompt = _getPrompt(clothingCat, prevIdx);
+              promptController.text = _removeFragmentSafe(promptController.text, prevPrompt);
+              selectedOptions.remove(clothingCat);
+            } catch (e) {
+              debugPrint('[SofiStudio] Failed to clear $clothingCat for full outfit: $e');
+            }
+          }
+        }
+        // Also remove any previous full outfit selection
+        final prevFull = selectedOptions[EditCategory.fullOutfit];
+        if (prevFull != null) {
+          try {
+            final prevPrompt = _getPrompt(EditCategory.fullOutfit, prevFull);
+            promptController.text = _removeFragmentSafe(promptController.text, prevPrompt);
+          } catch (e) {
+            debugPrint('[SofiStudio] Failed to clear previous full outfit: $e');
+          }
+        }
+      }
+      // If selecting individual clothing (top, bottom, shoes), clear any full outfit
+      else if (category == EditCategory.top || category == EditCategory.bottom || category == EditCategory.shoes) {
+        final fullOutfitIdx = selectedOptions[EditCategory.fullOutfit];
+        if (fullOutfitIdx != null) {
+          try {
+            final fullOutfitPrompt = _getPrompt(EditCategory.fullOutfit, fullOutfitIdx);
+            promptController.text = _removeFragmentSafe(promptController.text, fullOutfitPrompt);
+            selectedOptions.remove(EditCategory.fullOutfit);
+          } catch (e) {
+            debugPrint('[SofiStudio] Failed to clear full outfit when selecting $category: $e');
+          }
+        }
+        // Also remove previous selection for this specific category
+        final previous = selectedOptions[category];
+        if (previous != null) {
+          try {
+            final prevPrompt = _getPrompt(category, previous);
+            promptController.text = _removeFragmentSafe(promptController.text, prevPrompt);
+          } catch (e) {
+            debugPrint('[SofiStudio] Failed to remove previous ${category.name}: $e');
+          }
+        }
+      }
+      // For other non-accessories categories (hair, background, hats, jewelry, glasses, poses)
+      else if (category != EditCategory.accessories) {
         final previous = selectedOptions[category];
         if (previous != null) {
           try {
@@ -558,6 +610,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
           }
         }
       }
+      // Accessories can stack - no removal needed
 
       // Update current selection (single int per category)
       selectedOptions[category] = option;
@@ -1473,14 +1526,26 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
           return;
         }
         
+        // Store existing prompt text so voice can append to it
+        _promptBeforeMic = promptController.text.trim();
+        
         setState(() => _listening = true);
-        debugPrint('\ud83c\udfa4 [Speech] Starting to listen...');
+        debugPrint('\ud83c\udfa4 [Speech] Starting to listen... (existing prompt: $_promptBeforeMic)');
         
         try {
           await _speech.listen(
             onResult: (result) {
               debugPrint('\ud83d\udde3\ufe0f [Speech] onResult: ${result.recognizedWords} (final: ${result.finalResult})');
-              if (mounted) setState(() => promptController.text = result.recognizedWords);
+              if (mounted) {
+                setState(() {
+                  // Append voice input to existing prompt instead of replacing
+                  if (_promptBeforeMic.isNotEmpty) {
+                    promptController.text = '$_promptBeforeMic, ${result.recognizedWords}';
+                  } else {
+                    promptController.text = result.recognizedWords;
+                  }
+                });
+              }
             },
             listenOptions: SpeechListenOptions(
               listenMode: ListenMode.dictation,
