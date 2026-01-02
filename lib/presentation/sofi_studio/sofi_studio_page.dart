@@ -539,17 +539,35 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
       
       // REMOTE DEBUG LOG: Category selection
       unawaited(RemoteDebugLogger.instance.logCategorySelection(category.name, option));
-      
-      selectedOptions[category] = option;
-      
-      // Append the new selection to the existing text ("Stacking")
+
+      // Enforce single-selection per category except Accessories (can stack)
       final newPrompt = _getPrompt(category, option);
+
+      // If this category is NOT accessories, remove any previous fragment for this category
+      if (category != EditCategory.accessories) {
+        final previous = selectedOptions[category];
+        if (previous != null) {
+          try {
+            final prevPrompt = _getPrompt(category, previous);
+            final cleaned = _removeFragmentSafe(promptController.text, prevPrompt);
+            if (cleaned != promptController.text) {
+              promptController.text = cleaned;
+            }
+          } catch (e) {
+            debugPrint('[SofiStudio] Failed to remove previous fragment for ${category.name}: $e');
+          }
+        }
+      }
+
+      // Update current selection (single int per category)
+      selectedOptions[category] = option;
+
+      // Append or set new fragment
       final currentText = promptController.text.trim();
-      
       if (currentText.isEmpty) {
         promptController.text = newPrompt;
       } else {
-        // Avoid appending if it's already at the end to prevent double-clicks
+        // Avoid duplicate immediate re-append if already present at tail
         if (!currentText.endsWith(newPrompt)) {
           promptController.text = '$currentText, $newPrompt';
         }
@@ -569,6 +587,64 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
       });
     }
     // Drawer stays open for multiple selections ("Netflix style")
+  }
+
+  /// Safe helper that removes a fragment from a comma-separated prompt string.
+  /// Handles begin/middle/end positions and cleans up extra commas/spaces.
+  String _removeFragmentSafe(String text, String fragment) {
+    var result = text;
+    String esc(String input) => input.replaceAllMapped(
+      RegExp(r'[\\.\^\$\|\?\*\+\(\)\{\}\[\]]'),
+      (m) => '\\${m[0]}',
+    );
+
+    final frag = esc(fragment.trim());
+    // Remove leading occurrence
+    result = result.replaceFirst(RegExp('^$frag(\\s*,\\s*)?'), '');
+    // Remove middle/end occurrences
+    result = result.replaceAll(RegExp('(,\\s*)$frag'), '');
+    // Normalize commas/spaces and strip stray leading/trailing commas
+    result = result.replaceAll(RegExp(r'\s+,\s+'), ', ');
+    result = result.replaceAll(RegExp(r'(^\s*,\s*|\s*,\s*$)'), '');
+    result = result.trim();
+    if (result.endsWith(',')) {
+      result = result.substring(0, result.length - 1).trim();
+    }
+    return result;
+  }
+
+  /// Remove a specific fragment from the free-form prompt text, handling
+  /// commas and whitespace gracefully regardless of position.
+  String _removePromptFragment(String text, String fragment) {
+    String result = text;
+
+    String esc(String input) => input.replaceAllMapped(
+      RegExp(r'[\\.\^\$\|\?\*\+\(\)\{\}\[\]]'),
+      (m) => '\\${m[0]}',
+    );
+
+    final frag = esc(fragment.trim());
+
+    // 1) Remove leading: "fragment" or "fragment, "
+    result = result.replaceFirst(RegExp('^$frag(\\s*,\\s*)?'), '');
+
+    // 2) Remove middle/end occurrences: ", fragment"
+    result = result.replaceAll(RegExp('(,\\s*)$frag'), '');
+
+    // 3) Normalize stray commas and spaces
+    result = result.replaceAll(RegExp('\\s+,\\s+'), ', ');
+    /*
+    result = result.replaceAll(RegExp('(^\\s*,\\s*|\\s*,\\s*[0$])'), '');
+    */
+    // Safe replacement for trailing/leading commas
+    result = result.replaceAll(RegExp(r'(^\s*,\s*|\s*,\s*$)'), '');
+    // Fallback trim
+    result = result.trim();
+    // Remove trailing comma if any after trims
+    if (result.endsWith(',')) {
+      result = result.substring(0, result.length - 1).trim();
+    }
+    return result;
   }
 
   String _getPrompt(EditCategory category, int option) {
