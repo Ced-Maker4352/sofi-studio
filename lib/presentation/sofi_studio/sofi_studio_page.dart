@@ -1437,7 +1437,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
       // If we got a prompt back, store it as the active base style
       if (returnedPrompt != null && returnedPrompt.isNotEmpty) {
         setState(() => _activeBaseStylePrompt = returnedPrompt);
-        debugPrint('✅ Activated premium style prompt override');
+          debugPrint('Activated premium style prompt override');
       }
     } catch (e) {
       debugPrint('❌ Failed to open Premium Studio: $e');

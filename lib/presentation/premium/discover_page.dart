@@ -205,77 +205,99 @@ class _FeaturedBanner extends StatelessWidget {
                 ),
               ),
             ),
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Row(
+            // Content (overflow-safe on very small heights)
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // If the banner is very short, slightly reduce typography
+                    final isTight = constraints.maxHeight < 150;
+                    final titleSize = isTight ? 20.0 : 24.0;
+                    final subtitleSize = isTight ? 12.0 : 13.0;
+                    final ctaVPad = isTight ? 5.0 : 6.0;
+                    final chipVPad = isTight ? 3.0 : 4.0;
+
+                    final content = Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.auto_awesome, size: 12, color: Colors.amber),
-                        SizedBox(width: 4),
-                        Text(
-                          'Featured',
-                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    theme?.label ?? 'Explore Styles',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    theme?.description ?? 'Discover new looks',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Try Now',
-                          style: TextStyle(
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: chipVPad),
+                          decoration: BoxDecoration(
                             color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.auto_awesome, size: 12, color: Colors.amber),
+                              SizedBox(width: 4),
+                              Text(
+                                'Featured',
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                              ),
+                            ],
                           ),
                         ),
-                        SizedBox(width: 4),
-                        Icon(Icons.arrow_forward, size: 12, color: Colors.white),
+                        const SizedBox(height: 8),
+                        Text(
+                          theme?.label ?? 'Explore Styles',
+                          style: TextStyle(
+                            fontSize: titleSize,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          theme?.description ?? 'Discover new looks',
+                          style: TextStyle(
+                            fontSize: subtitleSize,
+                            color: Colors.white.withValues(alpha: 0.9),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 14, vertical: ctaVPad),
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Try Now',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Icon(Icons.arrow_forward, size: 12, color: Colors.white),
+                            ],
+                          ),
+                        ),
                       ],
-                    ),
-                  ),
-                ],
+                    );
+
+                    // Use a non-scroll path when space allows, else allow gentle scroll to avoid overflow stripes
+                    if (constraints.maxHeight >= 132) {
+                      return content;
+                    }
+                    return SingleChildScrollView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      child: content,
+                    );
+                  },
+                ),
               ),
             ),
           ],
