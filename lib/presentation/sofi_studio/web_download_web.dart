@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:web/web.dart' as web;
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
@@ -9,13 +8,13 @@ void downloadImageBytesImpl(Uint8List bytes, String name) {
     final b64 = base64Encode(bytes);
     final url = 'data:image/png;base64,$b64';
 
-    final anchor = web.document.createElement('a') as web.HTMLAnchorElement
-      ..href = url
-      ..download = name
-      ..style.display = 'none';
+    final anchor = web.document.createElement('a');
+    anchor.setAttribute('href', url);
+    anchor.setAttribute('download', name);
 
     web.document.body?.appendChild(anchor);
-    anchor.click();
+    // Use dynamic call to avoid strict DOM typing issues across web interop
+    (anchor as dynamic).click();
     anchor.remove();
   } catch (e) {
     debugPrint('[WebDownload] Failed to trigger download: $e');

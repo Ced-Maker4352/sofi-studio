@@ -1,17 +1,18 @@
 // lib/services/tts_platform_web.dart
-// Web implementation using the browser's SpeechSynthesis API via dart:html.
+// Web implementation using the browser's SpeechSynthesis API via package:web.
 
-import 'dart:html' as html;
+import 'package:web/web.dart' as web;
+import 'dart:js_interop';
 
 // Cache a preferred voice to avoid repeated selection and voiceschanged timing issues
-html.SpeechSynthesisVoice? _cachedFemaleVoice;
+web.SpeechSynthesisVoice? _cachedFemaleVoice;
 
-html.SpeechSynthesisVoice? _pickFemaleVoice(html.SpeechSynthesis synth, {String? lang}) {
+web.SpeechSynthesisVoice? _pickFemaleVoice(web.SpeechSynthesis synth, {String? lang}) {
   try {
-    final voices = synth.getVoices();
+    final voices = synth.getVoices().toDart;
     if (voices.isEmpty) return null;
 
-    html.SpeechSynthesisVoice? best;
+    web.SpeechSynthesisVoice? best;
     var bestScore = -9999;
     const femaleHints = <String>[
       'female', 'samantha', 'victoria', 'karen', 'moira', 'serena', 'tessa',
@@ -38,11 +39,10 @@ html.SpeechSynthesisVoice? _pickFemaleVoice(html.SpeechSynthesis synth, {String?
 
 Future<bool> ttsPlatformSpeak(String text, {String? lang, double? rate, double? pitch}) async {
   try {
-    final synth = html.window.speechSynthesis;
-    if (synth == null) return false;
+    final synth = web.window.speechSynthesis;
 
     // Prepare utterance
-    final u = html.SpeechSynthesisUtterance(text);
+    final u = web.SpeechSynthesisUtterance(text);
     if (lang != null) u.lang = lang;
     if (rate != null) u.rate = rate.clamp(0.1, 2.0).toDouble();
     if (pitch != null) u.pitch = pitch.clamp(0.1, 2.0).toDouble();

@@ -120,7 +120,7 @@ class _PaywallSheetState extends State<PaywallSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final bool _isIOSWeb = kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    final bool isIOSWeb = kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
     
     String buttonText;
@@ -167,7 +167,7 @@ class _PaywallSheetState extends State<PaywallSheet> {
                     colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
                   ),
                   shape: BoxShape.circle,
-                  boxShadow: _isIOSWeb
+                  boxShadow: isIOSWeb
                       ? null
                       : [
                           BoxShadow(

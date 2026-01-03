@@ -131,7 +131,8 @@ class RemoteDebugLogger {
       // Add timeout to prevent hanging
       await batch.commit().timeout(
         const Duration(seconds: 5),
-        onTimeout: () {
+        // Return a Future<void> explicitly so the type remains clear
+        onTimeout: () async {
           debugPrint('[RemoteDebugLogger] Batch commit timeout');
           throw TimeoutException('Firestore batch commit timed out');
         },

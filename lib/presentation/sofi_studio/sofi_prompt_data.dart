@@ -1,12 +1,12 @@
-/// Master prompt data
-///
-/// IMPORTANT:
-/// – Each section has EXACTLY 12 items (except full outfits = 24)
-/// – Indexes match your asset file names:
-///     hair_01.png → hair[0]
-///     hair_02.png → hair[1]
-///     ...
-/// – Full outfits include an optional "thumb" path for future thumbnails.
+// Master prompt data
+//
+// IMPORTANT:
+// – Each section has EXACTLY 12 items (except full outfits = 24)
+// – Indexes match your asset file names:
+//     hair_01.png → hair[0]
+//     hair_02.png → hair[1]
+//     ...
+// – Full outfits include an optional "thumb" path for future thumbnails.
 
 class SofiPromptData {
   // ================================================================

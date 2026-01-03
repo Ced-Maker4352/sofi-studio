@@ -2104,7 +2104,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
                       onPressed: () async {
                         await AudioService.instance.playClick();
                         // Open small settings panel for Voice Coach
-                        // ignore: use_build_context_synchronously
+                        if (!mounted) return;
                         await showModalBottomSheet(
                           context: context,
                           backgroundColor: Colors.transparent,
@@ -2123,7 +2123,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
                       color: isDark ? Colors.white70 : Colors.black54,
                       onPressed: () async {
                         await AudioService.instance.playClick();
-                        // ignore: use_build_context_synchronously
+                        if (!mounted) return;
                         await showModalBottomSheet(
                           context: context,
                           backgroundColor: Colors.transparent,
