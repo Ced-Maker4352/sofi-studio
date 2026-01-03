@@ -21,8 +21,8 @@ web.SpeechSynthesisVoice? _pickFemaleVoice(web.SpeechSynthesis synth, {String? l
     ];
 
     for (final v in voices) {
-      final name = (v.name ?? '').toLowerCase();
-      final vlang = (v.lang ?? '').toLowerCase();
+      final name = (v.name).toLowerCase();
+      final vlang = (v.lang).toLowerCase();
       var score = 0;
       if (vlang.startsWith('en')) score += 10;
       if (lang != null && vlang.startsWith(lang.toLowerCase())) score += 8;

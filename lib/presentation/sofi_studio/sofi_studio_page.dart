@@ -617,6 +617,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
 
   /// Remove a specific fragment from the free-form prompt text, handling
   /// commas and whitespace gracefully regardless of position.
+  // ignore: unused_element
   String _removePromptFragment(String text, String fragment) {
     String result = text;
 
