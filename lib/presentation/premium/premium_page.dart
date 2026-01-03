@@ -981,491 +981,503 @@ Widget build(BuildContext context) {
 final bool isLoading = loadingIdentity || applyingStyle;
 
 return Scaffold(
-backgroundColor: Colors.grey[100],
-appBar: AppBar(
-title: const Text('Premium Studio'),
-backgroundColor: Colors.white,
-elevation: 0,
-foregroundColor: Colors.black,
-actions: [
-// Daily generations indicator (for free users)
-if (!_premiumService.isPremium && _premiumService.isInitialized)
-GestureDetector(
-onTap: () => PaywallSheet.show(context),
-child: Container(
-margin: const EdgeInsets.only(right: 12),
-padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-decoration: BoxDecoration(
-gradient: _premiumService.dailyGenerationsRemaining > 0
-? LinearGradient(
-colors: [Colors.purple.shade400, Colors.purple.shade600],
-)
-: const LinearGradient(
-colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
-),
-borderRadius: BorderRadius.circular(16),
-),
-child: Row(
-mainAxisSize: MainAxisSize.min,
-children: [
-Icon(
-_premiumService.dailyGenerationsRemaining > 0
-? Icons.auto_awesome
-: Icons.star_rounded,
-color: Colors.white,
-size: 16,
-),
-const SizedBox(width: 4),
-Text(
-_premiumService.dailyGenerationsRemaining > 0
-? '${_premiumService.dailyGenerationsRemaining} left'
-: 'Upgrade',
-style: const TextStyle(
-color: Colors.white,
-fontWeight: FontWeight.bold,
-fontSize: 12,
-),
-),
-],
-),
-),
-),
-// Premium badge (for premium users)
-if (_premiumService.isPremium)
-Container(
-margin: const EdgeInsets.only(right: 12),
-padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-decoration: BoxDecoration(
-gradient: const LinearGradient(
-colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
-),
-borderRadius: BorderRadius.circular(16),
-),
-child: const Row(
-mainAxisSize: MainAxisSize.min,
-children: [
-Icon(Icons.star_rounded, color: Colors.white, size: 16),
-SizedBox(width: 4),
-Text(
-'Premium',
-style: TextStyle(
-color: Colors.white,
-fontWeight: FontWeight.bold,
-fontSize: 12,
-),
-),
-],
-),
-),
-],
-),
-body: Stack(
-children: [
-// Main Content
-Column(
-children: [
-// Canvas Area with Promo Carousel above
-Expanded(
-child: styledImage == null
-? Column(
-children: [
-// Promo Carousel fills available space above canvas
-_PromoCarousel(
-onDiscoverThemeSelected: _openThemeSheet,
-),
-// Canvas Area or Upload Prompt
-Expanded(
-child: Center(
-child: _needsUpload
-? _buildUploadPrompt()
-: lockedBodyBase64 != null
-? Padding(
-padding: const EdgeInsets.all(16.0),
-child: Stack(
-alignment: Alignment.topRight,
-children: [
-StageImage(
-base64: lockedBodyBase64!,
-),
-Padding(
-padding: const EdgeInsets.all(8.0),
-child: FloatingActionButton.small(
-heroTag: 'change_photo_btn',
-onPressed: _resetIdentity,
-backgroundColor: Colors.white,
-foregroundColor: Colors.black,
-tooltip: 'Change Photo',
-child: const Icon(Icons.edit),
-),
-),
-],
-),
-)
-: const SizedBox.shrink(),
-),
-),
-],
-)
-: Center(
-child: Padding(
-padding: const EdgeInsets.all(16.0),
-child: StageImage(
-base64: styledImage!,
-),
-),
-),
-),
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        title: const Text('Premium Studio'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        foregroundColor: Colors.black,
+        actions: [
+          // Daily generations indicator (for free users)
+          if (!_premiumService.isPremium && _premiumService.isInitialized)
+            GestureDetector(
+              onTap: () => PaywallSheet.show(context),
+              child: Container(
+                margin: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  gradient: _premiumService.dailyGenerationsRemaining > 0
+                      ? LinearGradient(
+                          colors: [Colors.purple.shade400, Colors.purple.shade600],
+                        )
+                      : const LinearGradient(
+                          colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
+                        ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      _premiumService.dailyGenerationsRemaining > 0
+                          ? Icons.auto_awesome
+                          : Icons.star_rounded,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      _premiumService.dailyGenerationsRemaining > 0
+                          ? '${_premiumService.dailyGenerationsRemaining} left'
+                          : 'Upgrade',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          // Premium badge (for premium users)
+          if (_premiumService.isPremium)
+            Container(
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.star_rounded, color: Colors.white, size: 16),
+                  SizedBox(width: 4),
+                  Text(
+                    'Premium',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Stack(
+            children: [
+              // Main Content
+              SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      children: [
+                        // Canvas Area with Promo Carousel above
+                        Expanded(
+                          child: styledImage == null
+                              ? Column(
+                                  children: [
+                                    // Promo Carousel fills available space above canvas
+                                    _PromoCarousel(
+                                      onDiscoverThemeSelected: _openThemeSheet,
+                                    ),
+                                    // Canvas Area or Upload Prompt
+                                    Expanded(
+                                      child: Center(
+                                        child: _needsUpload
+                                            ? _buildUploadPrompt()
+                                            : lockedBodyBase64 != null
+                                                ? Padding(
+                                                    padding: const EdgeInsets.all(16.0),
+                                                    child: Stack(
+                                                      alignment: Alignment.topRight,
+                                                      children: [
+                                                        StageImage(
+                                                          base64: lockedBodyBase64!,
+                                                        ),
+                                                        Padding(
+                                                          padding: const EdgeInsets.all(8.0),
+                                                          child: FloatingActionButton.small(
+                                                            heroTag: 'change_photo_btn',
+                                                            onPressed: _resetIdentity,
+                                                            backgroundColor: Colors.white,
+                                                            foregroundColor: Colors.black,
+                                                            tooltip: 'Change Photo',
+                                                            child: const Icon(Icons.edit),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  )
+                                                : const SizedBox.shrink(),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              : Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: StageImage(
+                                      base64: styledImage!,
+                                    ),
+                                  ),
+                                ),
+                        ),
 
-// Bottom Controls
-Container(
-decoration: const BoxDecoration(
-color: Colors.white,
-borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-boxShadow: [
-BoxShadow(
-color: Colors.black12,
-blurRadius: 10,
-offset: Offset(0, -2),
-)
-],
-),
-child: Column(
-mainAxisSize: MainAxisSize.min,
-children: [
-// Post-Generation Controls OR Custom Prompt
-if (styledImage != null)
-Padding(
-padding: const EdgeInsets.all(20.0),
-child: Column(
-crossAxisAlignment: CrossAxisAlignment.stretch,
-children: [
-// Top row: Undo/Redo + History + Crop + Discard
-Row(
-children: [
-// Undo button
-IconButton(
-onPressed: _canUndo ? _undo : null,
-icon: const Icon(Icons.undo_rounded, size: 20),
-tooltip: 'Undo',
-style: IconButton.styleFrom(
-foregroundColor: _canUndo ? Colors.purple : Colors.grey[400],
-backgroundColor: _canUndo ? Colors.purple.withValues(alpha: 0.1) : null,
-),
-),
-// Redo button
-IconButton(
-onPressed: _canRedo ? _redo : null,
-icon: const Icon(Icons.redo_rounded, size: 20),
-tooltip: 'Redo',
-style: IconButton.styleFrom(
-foregroundColor: _canRedo ? Colors.purple : Colors.grey[400],
-backgroundColor: _canRedo ? Colors.purple.withValues(alpha: 0.1) : null,
-),
-),
-// History button with count badge
-if (_hasHistory)
-Stack(
-clipBehavior: Clip.none,
-children: [
-IconButton(
-onPressed: _openHistorySheet,
-icon: const Icon(Icons.history_rounded, size: 20),
-tooltip: 'History',
-style: IconButton.styleFrom(
-foregroundColor: Colors.purple,
-backgroundColor: Colors.purple.withValues(alpha: 0.1),
-),
-),
-Positioned(
-top: 4,
-right: 4,
-child: Container(
-padding: const EdgeInsets.all(4),
-decoration: const BoxDecoration(
-color: Colors.purple,
-shape: BoxShape.circle,
-),
-child: Text(
-'${_generationHistory.length}',
-style: const TextStyle(
-color: Colors.white,
-fontSize: 9,
-fontWeight: FontWeight.bold,
-),
-),
-),
-),
-],
-),
-const Spacer(),
-TextButton.icon(
-onPressed: _openCropSheet,
-icon: const Icon(Icons.crop, size: 18),
-label: const Text('Refine'),
-style: TextButton.styleFrom(
-foregroundColor: Colors.grey[700],
-),
-),
-TextButton.icon(
-onPressed: () {
-setState(() {
-styledImage = null;
-_styledImageOriginal = null;
-_cropAspect = null;
-_cropFocus = 0;
-});
-},
-icon: const Icon(Icons.delete_outline, size: 18),
-label: const Text('Discard'),
-style: TextButton.styleFrom(
-foregroundColor: Colors.red[400],
-),
-),
-],
-),
-const SizedBox(height: 12),
-// Main action row: Save + Make Another
-Row(
-children: [
-Expanded(
-child: OutlinedButton.icon(
-onPressed: () => _saveToFavorites(makeAnother: false),
-icon: Icon(_currentImageSaved ? Icons.favorite : Icons.favorite_border),
-label: Text(_currentImageSaved ? 'Saved' : 'Save'),
-style: OutlinedButton.styleFrom(
-padding: const EdgeInsets.symmetric(vertical: 14),
-shape: RoundedRectangleBorder(
-borderRadius: BorderRadius.circular(14),
-),
-side: const BorderSide(color: Colors.pink),
-foregroundColor: Colors.pink,
-backgroundColor: _currentImageSaved ? Colors.pink.withValues(alpha: 0.1) : null,
-),
-),
-),
-const SizedBox(width: 12),
-Expanded(
-child: ElevatedButton.icon(
-onPressed: () => _saveToFavorites(makeAnother: true),
-icon: const Icon(Icons.add_photo_alternate),
-label: const Text('Save & New'),
-style: ElevatedButton.styleFrom(
-backgroundColor: Colors.purple,
-foregroundColor: Colors.white,
-padding: const EdgeInsets.symmetric(vertical: 14),
-shape: RoundedRectangleBorder(
-borderRadius: BorderRadius.circular(14),
-),
-),
-),
-),
-],
-),
-const SizedBox(height: 12),
-// Secondary action: Send to Studio
-SizedBox(
-width: double.infinity,
-child: ElevatedButton.icon(
-onPressed: () {
-// Pass back both image and the prompt used to create it
-final prompt = _buildPrompt(selectedTheme!, selectedVariant);
-Navigator.pop(context, {
-'image': styledImage,
-'prompt': prompt,
-});
-},
-icon: const Icon(Icons.send),
-label: const Text('Send to Studio'),
-style: ElevatedButton.styleFrom(
-backgroundColor: Colors.black,
-foregroundColor: Colors.white,
-padding: const EdgeInsets.symmetric(vertical: 14),
-shape: RoundedRectangleBorder(
-borderRadius: BorderRadius.circular(14),
-),
-),
-),
-),
-const SizedBox(height: 12),
-// Share button
-SizedBox(
-width: double.infinity,
-child: OutlinedButton.icon(
-onPressed: () {
-Navigator.of(context).push(
-MaterialPageRoute(
-builder: (_) => ShareHubPage(
-imageBase64: styledImage,
-prompt: selectedVariant?.prompt ?? selectedTheme?.label,
-isPremiumImage: true,
-),
-),
-);
-},
-icon: const Icon(Icons.share_rounded),
-label: const Text('Share Creation'),
-style: OutlinedButton.styleFrom(
-padding: const EdgeInsets.symmetric(vertical: 14),
-shape: RoundedRectangleBorder(
-borderRadius: BorderRadius.circular(14),
-),
-side: BorderSide(color: Colors.purple.shade300),
-foregroundColor: Colors.purple,
-),
-),
-),
-],
-),
-)
-else ...[
-// Custom Prompt Pill
-Padding(
-padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-child: Container(
-decoration: BoxDecoration(
-color: Colors.grey[100],
-borderRadius: BorderRadius.circular(30),
-border: Border.all(color: Colors.grey[300]!),
-),
-child: Row(
-children: [
-const Padding(
-padding: EdgeInsets.only(left: 16),
-child: Icon(Icons.auto_awesome, color: Colors.purple),
-),
-Expanded(
-child: TextField(
-controller: _promptController,
-decoration: const InputDecoration(
-hintText: 'Add custom style instructions...',
-border: InputBorder.none,
-contentPadding: EdgeInsets.symmetric(horizontal: 16),
-),
-),
-),
-IconButton(
-icon: const Icon(Icons.mic),
-onPressed: () {
-// Microphone placeholder
-ScaffoldMessenger.of(context).showSnackBar(
-const SnackBar(content: Text('Voice input not enabled in this demo')));
-},
-),
-],
-),
-),
-),
+                        // Bottom Controls
+                        Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 10,
+                                offset: Offset(0, -2),
+                              )
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Post-Generation Controls OR Custom Prompt
+                              if (styledImage != null)
+                                Padding(
+                                  padding: const EdgeInsets.all(20.0),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      // Top row: Undo/Redo + History + Crop + Discard
+                                      Row(
+                                        children: [
+                                          // Undo button
+                                          IconButton(
+                                            onPressed: _canUndo ? _undo : null,
+                                            icon: const Icon(Icons.undo_rounded, size: 20),
+                                            tooltip: 'Undo',
+                                            style: IconButton.styleFrom(
+                                              foregroundColor: _canUndo ? Colors.purple : Colors.grey[400],
+                                              backgroundColor: _canUndo ? Colors.purple.withValues(alpha: 0.1) : null,
+                                            ),
+                                          ),
+                                          // Redo button
+                                          IconButton(
+                                            onPressed: _canRedo ? _redo : null,
+                                            icon: const Icon(Icons.redo_rounded, size: 20),
+                                            tooltip: 'Redo',
+                                            style: IconButton.styleFrom(
+                                              foregroundColor: _canRedo ? Colors.purple : Colors.grey[400],
+                                              backgroundColor: _canRedo ? Colors.purple.withValues(alpha: 0.1) : null,
+                                            ),
+                                          ),
+                                          // History button with count badge
+                                          if (_hasHistory)
+                                            Stack(
+                                              clipBehavior: Clip.none,
+                                              children: [
+                                                IconButton(
+                                                  onPressed: _openHistorySheet,
+                                                  icon: const Icon(Icons.history_rounded, size: 20),
+                                                  tooltip: 'History',
+                                                  style: IconButton.styleFrom(
+                                                    foregroundColor: Colors.purple,
+                                                    backgroundColor: Colors.purple.withValues(alpha: 0.1),
+                                                  ),
+                                                ),
+                                                Positioned(
+                                                  top: 4,
+                                                  right: 4,
+                                                  child: Container(
+                                                    padding: const EdgeInsets.all(4),
+                                                    decoration: const BoxDecoration(
+                                                      color: Colors.purple,
+                                                      shape: BoxShape.circle,
+                                                    ),
+                                                    child: Text(
+                                                      '${_generationHistory.length}',
+                                                      style: const TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 9,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          const Spacer(),
+                                          TextButton.icon(
+                                            onPressed: _openCropSheet,
+                                            icon: const Icon(Icons.crop, size: 18),
+                                            label: const Text('Refine'),
+                                            style: TextButton.styleFrom(
+                                              foregroundColor: Colors.grey[700],
+                                            ),
+                                          ),
+                                          TextButton.icon(
+                                            onPressed: () {
+                                              setState(() {
+                                                styledImage = null;
+                                                _styledImageOriginal = null;
+                                                _cropAspect = null;
+                                                _cropFocus = 0;
+                                              });
+                                            },
+                                            icon: const Icon(Icons.delete_outline, size: 18),
+                                            label: const Text('Discard'),
+                                            style: TextButton.styleFrom(
+                                              foregroundColor: Colors.red[400],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      // Main action row: Save + Make Another
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: OutlinedButton.icon(
+                                              onPressed: () => _saveToFavorites(makeAnother: false),
+                                              icon: Icon(_currentImageSaved ? Icons.favorite : Icons.favorite_border),
+                                              label: Text(_currentImageSaved ? 'Saved' : 'Save'),
+                                              style: OutlinedButton.styleFrom(
+                                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(14),
+                                                ),
+                                                side: const BorderSide(color: Colors.pink),
+                                                foregroundColor: Colors.pink,
+                                                backgroundColor: _currentImageSaved ? Colors.pink.withValues(alpha: 0.1) : null,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: ElevatedButton.icon(
+                                              onPressed: () => _saveToFavorites(makeAnother: true),
+                                              icon: const Icon(Icons.add_photo_alternate),
+                                              label: const Text('Save & New'),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.purple,
+                                                foregroundColor: Colors.white,
+                                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(14),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+                                      // Secondary action: Send to Studio
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: ElevatedButton.icon(
+                                          onPressed: () {
+                                            // Pass back both image and the prompt used to create it
+                                            final prompt = _buildPrompt(selectedTheme!, selectedVariant);
+                                            Navigator.pop(context, {
+                                              'image': styledImage,
+                                              'prompt': prompt,
+                                            });
+                                          },
+                                          icon: const Icon(Icons.send),
+                                          label: const Text('Send to Studio'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.black,
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(vertical: 14),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      // Share button
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: OutlinedButton.icon(
+                                          onPressed: () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (_) => ShareHubPage(
+                                                  imageBase64: styledImage,
+                                                  prompt: selectedVariant?.prompt ?? selectedTheme?.label,
+                                                  isPremiumImage: true,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          icon: const Icon(Icons.share_rounded),
+                                          label: const Text('Share Creation'),
+                                          style: OutlinedButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(vertical: 14),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(14),
+                                            ),
+                                            side: BorderSide(color: Colors.purple.shade300),
+                                            foregroundColor: Colors.purple,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              else ...[
+                                // Custom Prompt Pill
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[100],
+                                      borderRadius: BorderRadius.circular(30),
+                                      border: Border.all(color: Colors.grey[300]!),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Padding(
+                                          padding: EdgeInsets.only(left: 16),
+                                          child: Icon(Icons.auto_awesome, color: Colors.purple),
+                                        ),
+                                        Expanded(
+                                          child: TextField(
+                                            controller: _promptController,
+                                            decoration: const InputDecoration(
+                                              hintText: 'Add custom style instructions...',
+                                              border: InputBorder.none,
+                                              contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                                            ),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.mic),
+                                          onPressed: () {
+                                            // Microphone placeholder
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text('Voice input not enabled in this demo')));
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
 
-// Theme Strip
-Container(
-height: 140, // Height for the blocks + padding
-padding: const EdgeInsets.symmetric(vertical: 16),
-child: ListView.builder(
-scrollDirection: Axis.horizontal,
-padding: const EdgeInsets.symmetric(horizontal: 16),
-itemCount: themePresets.length,
-itemBuilder: (_, i) {
-final t = themePresets[i];
-return GestureDetector(
-onTap: isLoading ? null : () => _openThemeSheet(t),
-child: Container(
-width: 90,
-margin: const EdgeInsets.only(right: 12),
-decoration: BoxDecoration(
-borderRadius: BorderRadius.circular(16),
-color: Colors.grey[900],
-boxShadow: [
-BoxShadow(
-color: Colors.black.withValues(alpha: 0.1),
-blurRadius: 4,
-offset: const Offset(0, 2),
-)
-],
-),
-clipBehavior: Clip.antiAlias,
-child: Stack(
-fit: StackFit.expand,
-children: [
-// Avatar Image
-if (t.assetPath != null)
-_FirebaseImage(
-path: t.assetPath!,
-fit: BoxFit.cover,
-fallback: Container(
-color: Colors.amber, // Fallback yellow
-child: const Icon(Icons.broken_image, color: Colors.black54),
-),
-)
-else
-Container(
-color: Colors.amber,
-child: const Icon(Icons.person, color: Colors.black54),
-),
+                                // Theme Strip
+                                Container(
+                                  height: 140, // Height for the blocks + padding
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    itemCount: themePresets.length,
+                                    itemBuilder: (_, i) {
+                                      final t = themePresets[i];
+                                      return GestureDetector(
+                                        onTap: isLoading ? null : () => _openThemeSheet(t),
+                                        child: Container(
+                                          width: 90,
+                                          margin: const EdgeInsets.only(right: 12),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(16),
+                                            color: Colors.grey[900],
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withValues(alpha: 0.1),
+                                                blurRadius: 4,
+                                                offset: const Offset(0, 2),
+                                              )
+                                            ],
+                                          ),
+                                          clipBehavior: Clip.antiAlias,
+                                          child: Stack(
+                                            fit: StackFit.expand,
+                                            children: [
+                                              // Avatar Image
+                                              if (t.assetPath != null)
+                                                _FirebaseImage(
+                                                  path: t.assetPath!,
+                                                  fit: BoxFit.cover,
+                                                  fallback: Container(
+                                                    color: Colors.amber, // Fallback yellow
+                                                    child: const Icon(Icons.broken_image, color: Colors.black54),
+                                                  ),
+                                                )
+                                              else
+                                                Container(
+                                                  color: Colors.amber,
+                                                  child: const Icon(Icons.person, color: Colors.black54),
+                                                ),
 
-// Gradient Overlay for Text
-Positioned(
-bottom: 0,
-left: 0,
-right: 0,
-child: Container(
-padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-decoration: BoxDecoration(
-gradient: LinearGradient(
-begin: Alignment.topCenter,
-end: Alignment.bottomCenter,
-colors: [
-Colors.transparent,
-Colors.black.withValues(alpha: 0.9),
-],
-),
-),
-child: Column(
-mainAxisSize: MainAxisSize.min,
-children: [
-if (t.isPremium)
-const Icon(Icons.lock, size: 12, color: Colors.amber),
-Text(
-t.label,
-style: const TextStyle(
-color: Colors.white,
-fontSize: 11,
-fontWeight: FontWeight.bold,
-),
-textAlign: TextAlign.center,
-maxLines: 1,
-overflow: TextOverflow.ellipsis,
-),
-],
-),
-),
-),
-],
-),
-),
-);
-},
-),
-),
-],
-// Safe area spacing
-SizedBox(height: MediaQuery.of(context).padding.bottom),
-],
-),
-),
-],
-),
+                                              // Gradient Overlay for Text
+                                              Positioned(
+                                                bottom: 0,
+                                                left: 0,
+                                                right: 0,
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+                                                  decoration: BoxDecoration(
+                                                    gradient: LinearGradient(
+                                                      begin: Alignment.topCenter,
+                                                      end: Alignment.bottomCenter,
+                                                      colors: [
+                                                        Colors.transparent,
+                                                        Colors.black.withValues(alpha: 0.9),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  child: Column(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      if (t.isPremium)
+                                                        const Icon(Icons.lock, size: 12, color: Colors.amber),
+                                                      Text(
+                                                        t.label,
+                                                        style: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 11,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                        textAlign: TextAlign.center,
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                              // Safe area spacing
+                              SizedBox(height: MediaQuery.of(context).padding.bottom),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
 
-// Loading Overlay
-if (isLoading)
-Positioned.fill(
-child: GenerationLoader(
-historyImages: const [],
-premiumAssetPaths: widget.premiumAssetPaths,
-),
-),
-],
-),
-);
+              // Loading Overlay
+              if (isLoading)
+                Positioned.fill(
+                  child: GenerationLoader(
+                    historyImages: const [],
+                    premiumAssetPaths: widget.premiumAssetPaths,
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+
 }
 }
 

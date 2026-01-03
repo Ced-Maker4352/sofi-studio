@@ -1290,75 +1290,73 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
         isScrollControlled: true,
         builder: (ctx) => Theme(
           data: ThemeData.light(),
-          child: SafeArea(
-            top: false,
-            child: SingleChildScrollView(
+          child: SingleChildScrollView(
+            child: Container(
               padding: EdgeInsets.only(
-                // Ensure the sheet isn't hidden by the keyboard on small screens
-                bottom: MediaQuery.of(ctx).viewInsets.bottom,
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + MediaQuery.of(ctx).padding.bottom + 20,
               ),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: _radiusTop24,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: _radiusTop24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    const Center(
-                      child: Text(
-                        'Select Identity Source',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1A1A1A),
-                        ),
+                  ),
+                  const Center(
+                    child: Text(
+                      'Select Identity Source',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1A1A1A),
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    _buildSheetOption(
-                      icon: Icons.camera_alt_outlined,
-                      label: 'Take Live Picture',
-                      onTap: () => Navigator.pop(ctx, 0),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildSheetOption(
-                      icon: Icons.photo_library_outlined,
-                      label: 'Choose from Gallery',
-                      onTap: () => Navigator.pop(ctx, 1),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildSheetOption(
-                      icon: Icons.brush_outlined,
-                      label: 'Use Current Canvas',
-                      onTap: () => Navigator.pop(ctx, 2),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      child: Divider(color: Colors.black12),
-                    ),
-                    _buildSheetOption(
-                      icon: Icons.arrow_forward_rounded,
-                      label: 'Go Directly to Premium',
-                      subtitle: 'Browse styles, upload later',
-                      isPrimary: true,
-                      onTap: () => Navigator.pop(ctx, 3),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildSheetOption(
+                    icon: Icons.camera_alt_outlined,
+                    label: 'Take Live Picture',
+                    onTap: () => Navigator.pop(ctx, 0),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildSheetOption(
+                    icon: Icons.photo_library_outlined,
+                    label: 'Choose from Gallery',
+                    onTap: () => Navigator.pop(ctx, 1),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildSheetOption(
+                    icon: Icons.brush_outlined,
+                    label: 'Use Current Canvas',
+                    onTap: () => Navigator.pop(ctx, 2),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Divider(color: Colors.black12),
+                  ),
+                  _buildSheetOption(
+                    icon: Icons.arrow_forward_rounded,
+                    label: 'Go Directly to Premium',
+                    subtitle: 'Browse styles, upload later',
+                    isPrimary: true,
+                    onTap: () => Navigator.pop(ctx, 3),
+                  ),
+                ],
               ),
             ),
           ),
