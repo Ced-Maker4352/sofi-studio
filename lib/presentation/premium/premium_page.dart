@@ -534,60 +534,62 @@ Navigator.pop(context);
 }
 
 Widget _buildUploadPrompt() {
-return Padding(
-padding: const EdgeInsets.all(24.0),
-child: Column(
-mainAxisSize: MainAxisSize.min,
-children: [
-Container(
-width: 120,
-height: 120,
-decoration: BoxDecoration(
-color: Colors.grey[200],
-shape: BoxShape.circle,
-border: Border.all(color: Colors.grey[300]!, width: 2),
-),
-child: Icon(Icons.person_add_alt_1_rounded, size: 48, color: Colors.grey[500]),
-),
-const SizedBox(height: 20),
-Text(
-'Upload Your Photo',
-style: TextStyle(
-fontSize: 22,
-fontWeight: FontWeight.bold,
-color: Colors.grey[800],
-),
-),
-const SizedBox(height: 8),
-Text(
-'Take a selfie or choose from your gallery\nto start creating styled looks',
-textAlign: TextAlign.center,
-style: TextStyle(fontSize: 14, color: Colors.grey[600], height: 1.4),
-),
-const SizedBox(height: 24),
-// Clip to ensure no 1px overrun on high-DPI displays (iPhone Safari)
-ClipRRect(
-borderRadius: BorderRadius.circular(28),
-child: SizedBox(
-width: double.infinity,
-height: 56,
-child: ElevatedButton.icon(
-onPressed: _uploadImage,
-icon: const Icon(Icons.add_a_photo_rounded),
-label: const Text('Add Photo', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-style: ElevatedButton.styleFrom(
-backgroundColor: Colors.black,
-foregroundColor: Colors.white,
-elevation: 0,
-shape: const StadiumBorder(),
-),
-),
-),
-),
-],
-),
-);
-}
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey[300]!, width: 2),
+            ),
+            child: Icon(Icons.person_add_alt_1_rounded, size: 40, color: Colors.grey[500]),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Upload Your Photo',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[800],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Take a selfie or choose from your gallery',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: _uploadImage,
+                icon: const Icon(Icons.add_a_photo_rounded, size: 20),
+                label: const Text('Add Photo', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: const StadiumBorder(),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
 void _toggleFavorite() async {
 if (selectedTheme == null) return;

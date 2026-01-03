@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sofi_test_connect/data/theme_presets_data.dart';
 import 'package:sofi_test_connect/models/theme_presets.dart';
 import 'package:sofi_test_connect/presentation/sofi_studio/sofi_style_presets.dart';
+import 'package:sofi_test_connect/services/storage_service.dart';
 
 class DiscoverPage extends StatelessWidget {
   final void Function(ThemePreset theme)? onThemeSelected;
@@ -206,56 +207,72 @@ class _FeaturedBanner extends StatelessWidget {
             ),
             // Content
             Padding(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Text(
-                      '✨ Featured',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.auto_awesome, size: 12, color: Colors.amber),
+                        SizedBox(width: 4),
+                        Text(
+                          'Featured',
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Text(
                     theme?.label ?? 'Explore Styles',
                     style: const TextStyle(
-                      fontSize: 28,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     theme?.description ?? 'Discover new looks',
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 13,
                       color: Colors.white.withValues(alpha: 0.9),
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(
                       color: Colors.black,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Text(
-                      'Try Now →',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Try Now',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                        SizedBox(width: 4),
+                        Icon(Icons.arrow_forward, size: 12, color: Colors.white),
+                      ],
                     ),
                   ),
                 ],
@@ -347,7 +364,7 @@ class _StylePresetChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = preset['icon'] as String? ?? '✨';
+    final icon = preset['icon'] as String? ?? '';
     final label = preset['label'] as String? ?? 'Style';
     
     // Generate a color based on label
@@ -375,7 +392,7 @@ class _StylePresetChip extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(icon, style: const TextStyle(fontSize: 32)),
+            _getIconForStyle(icon, label),
             const SizedBox(height: 8),
             Text(
               label,
@@ -392,6 +409,31 @@ class _StylePresetChip extends StatelessWidget {
         ),
       ),
     );
+  }
+  
+  Widget _getIconForStyle(String icon, String label) {
+    // Use Material icons instead of emoji characters
+    IconData iconData;
+    switch (label.toLowerCase()) {
+      case 'clean girl':
+        iconData = Icons.spa;
+        break;
+      case 'y2k style':
+        iconData = Icons.star;
+        break;
+      case 'street minimal':
+        iconData = Icons.location_city;
+        break;
+      case 'soft girl':
+        iconData = Icons.favorite;
+        break;
+      case 'academia':
+        iconData = Icons.menu_book;
+        break;
+      default:
+        iconData = Icons.auto_awesome;
+    }
+    return Icon(iconData, size: 32, color: Colors.white);
   }
   
   List<Color> _getColorsForStyle(String label) {
@@ -412,7 +454,7 @@ class _StylePresetChip extends StatelessWidget {
   }
 }
 
-/// Theme card for grid
+/// Theme card for grid - uses Firebase Storage images
 class _ThemeCard extends StatelessWidget {
   final ThemePreset theme;
   final bool isPremium;
@@ -451,17 +493,10 @@ class _ThemeCard extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   if (theme.assetPath != null)
-                    Image.asset(
-                      theme.assetPath!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: _getColorForTheme(theme.id),
-                        child: Icon(
-                          _getIconForTheme(theme.id),
-                          color: Colors.white.withValues(alpha: 0.5),
-                          size: 48,
-                        ),
-                      ),
+                    _FirebaseThemeImage(
+                      path: theme.assetPath!,
+                      fallbackColor: _getColorForTheme(theme.id),
+                      fallbackIcon: _getIconForTheme(theme.id),
                     )
                   else
                     Container(
@@ -504,12 +539,12 @@ class _ThemeCard extends StatelessWidget {
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.star, size: 12, color: Colors.black),
-                            const SizedBox(width: 4),
-                            const Text(
+                            Icon(Icons.star, size: 12, color: Colors.black),
+                            SizedBox(width: 4),
+                            Text(
                               'PRO',
                               style: TextStyle(
                                 fontSize: 10,
@@ -626,5 +661,101 @@ class _ThemeCard extends StatelessWidget {
       default:
         return Icons.palette;
     }
+  }
+}
+
+/// Firebase image loader for theme thumbnails
+class _FirebaseThemeImage extends StatefulWidget {
+  final String path;
+  final Color fallbackColor;
+  final IconData fallbackIcon;
+  
+  const _FirebaseThemeImage({
+    required this.path,
+    required this.fallbackColor,
+    required this.fallbackIcon,
+  });
+
+  @override
+  State<_FirebaseThemeImage> createState() => _FirebaseThemeImageState();
+}
+
+class _FirebaseThemeImageState extends State<_FirebaseThemeImage> {
+  String? _url;
+  bool _loading = true;
+  bool _error = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImage();
+  }
+
+  @override
+  void didUpdateWidget(_FirebaseThemeImage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.path != oldWidget.path) {
+      _loadImage();
+    }
+  }
+
+  Future<void> _loadImage() async {
+    setState(() {
+      _loading = true;
+      _error = false;
+    });
+
+    try {
+      final url = await StorageService.instance.getDownloadUrlSafe(widget.path);
+      if (mounted) {
+        setState(() {
+          _url = url;
+          if (url == null) _error = true;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = true);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return Container(
+        color: widget.fallbackColor,
+        child: Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation(Colors.white.withValues(alpha: 0.7)),
+          ),
+        ),
+      );
+    }
+
+    if (_error || _url == null) {
+      return Container(
+        color: widget.fallbackColor,
+        child: Icon(
+          widget.fallbackIcon,
+          color: Colors.white.withValues(alpha: 0.5),
+          size: 48,
+        ),
+      );
+    }
+
+    return Image.network(
+      _url!,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) => Container(
+        color: widget.fallbackColor,
+        child: Icon(
+          widget.fallbackIcon,
+          color: Colors.white.withValues(alpha: 0.5),
+          size: 48,
+        ),
+      ),
+    );
   }
 }
