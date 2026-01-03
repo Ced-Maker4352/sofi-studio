@@ -205,20 +205,25 @@ class _FeaturedBanner extends StatelessWidget {
                 ),
               ),
             ),
-            // Content (overflow-safe on very small heights)
+            // Content - tightly constrained to avoid overflow
             Positioned.fill(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    // If the banner is very short, slightly reduce typography
-                    final isTight = constraints.maxHeight < 150;
-                    final titleSize = isTight ? 20.0 : 24.0;
-                    final subtitleSize = isTight ? 12.0 : 13.0;
-                    final ctaVPad = isTight ? 5.0 : 6.0;
-                    final chipVPad = isTight ? 3.0 : 4.0;
+                    // Adjust spacing based on available height
+                    final availableHeight = constraints.maxHeight;
+                    final isTight = availableHeight < 150;
+                    final isVeryTight = availableHeight < 140;
+                    
+                    final titleSize = isVeryTight ? 18.0 : (isTight ? 20.0 : 24.0);
+                    final subtitleSize = isVeryTight ? 11.0 : (isTight ? 12.0 : 13.0);
+                    final ctaVPad = isVeryTight ? 4.0 : (isTight ? 5.0 : 6.0);
+                    final chipVPad = isVeryTight ? 2.0 : (isTight ? 3.0 : 4.0);
+                    final verticalSpacing = isVeryTight ? 4.0 : (isTight ? 6.0 : 8.0);
+                    final midSpacing = isVeryTight ? 6.0 : (isTight ? 8.0 : 10.0);
 
-                    final content = Column(
+                    return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
@@ -241,7 +246,7 @@ class _FeaturedBanner extends StatelessWidget {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: verticalSpacing),
                         Text(
                           theme?.label ?? 'Explore Styles',
                           style: TextStyle(
@@ -262,7 +267,7 @@ class _FeaturedBanner extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 10),
+                        SizedBox(height: midSpacing),
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 14, vertical: ctaVPad),
                           decoration: BoxDecoration(
@@ -286,15 +291,6 @@ class _FeaturedBanner extends StatelessWidget {
                           ),
                         ),
                       ],
-                    );
-
-                    // Use a non-scroll path when space allows, else allow gentle scroll to avoid overflow stripes
-                    if (constraints.maxHeight >= 132) {
-                      return content;
-                    }
-                    return SingleChildScrollView(
-                      physics: const NeverScrollableScrollPhysics(),
-                      child: content,
                     );
                   },
                 ),
