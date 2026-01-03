@@ -128,15 +128,14 @@ class RemoteDebugLogger {
         batch.set(collection.doc(), log);
       }
       
-      // Add timeout to prevent hanging
-      await batch.commit().timeout(
-        const Duration(seconds: 5),
-        // Return a Future<void> explicitly so the type remains clear
-        onTimeout: () async {
+      // Add timeout to prevent hanging (avoid onTimeout type pitfalls)
+      await Future.any([
+        batch.commit(),
+        Future<void>.delayed(const Duration(seconds: 5), () {
           debugPrint('[RemoteDebugLogger] Batch commit timeout');
           throw TimeoutException('Firestore batch commit timed out');
-        },
-      );
+        }),
+      ]);
     } catch (e) {
       final msg = e.toString();
       if (msg.contains('permission-denied')) {
