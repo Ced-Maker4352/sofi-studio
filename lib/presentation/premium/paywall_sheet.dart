@@ -135,197 +135,154 @@ class _PaywallSheetState extends State<PaywallSheet> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF2D1B4E),
-            Color(0xFF1A1A2E),
-          ],
+          colors: [Color(0xFF2D1B4E), Color(0xFF1A1A2E)],
         ),
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(24, 16, 24, bottomPadding + 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Drag handle
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 24),
-              
-              // Crown icon or Avatar
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
-                  ),
-                  shape: BoxShape.circle,
-                  boxShadow: isIOSWeb
-                      ? null
-                      : [
-                          BoxShadow(
-                            color: const Color(0xFFFFD700).withValues(alpha: 0.4),
-                            blurRadius: 20,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                ),
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        const Color(0xFFB76EF9),
-                        const Color(0xFF8B5CF6),
-                        const Color(0xFF7C3AED),
-                      ],
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.auto_awesome,
-                    color: Colors.white,
-                    size: 36,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              
-              // Title
-              const Text(
-                'Unlock Premium',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              
-              // Context message or default subtitle
-              Text(
-                widget.contextMessage ?? 'Unlimited generations & exclusive styles',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  fontSize: 16,
-                ),
-              ),
-              const SizedBox(height: 24),
-              
-              // Features list
-              _buildFeatureRow(Icons.all_inclusive, 'Unlimited daily generations'),
-              _buildFeatureRow(Icons.flash_on_rounded, 'Batch generation mode'),
-              _buildFeatureRow(Icons.star_rounded, 'Exclusive premium styles'),
-              _buildFeatureRow(Icons.high_quality_rounded, 'Priority processing'),
-              _buildFeatureRow(Icons.block, 'No ads ever'),
-              const SizedBox(height: 28),
-              
-              // Plan options
-              ...(_plans.map((plan) => _buildPlanTile(plan))),
-              const SizedBox(height: 24),
-              
-              // Subscribe button
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _isProcessing ? null : _handleSubscribe,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFD700),
-                    foregroundColor: Colors.black,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isProcessing
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
-                        )
-                      : Text(
-                          buttonText,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Secondary CTA for Annual without trial
-              if (_selectedPlan == SubscriptionPlan.annual) ...[
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: OutlinedButton(
-                    onPressed: _isProcessing ? null : _handleSubscribe,
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-                    ),
-                    child: const Text(
-                      'Continue with Annual Subscription',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-              ],
-              
-              // Restore purchases
-              TextButton(
-                onPressed: _isProcessing ? null : _handleRestore,
-                child: Text(
-                  'Restore Purchases',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              
-              // Legal text
-              Text(
-                'Cancel anytime. Subscription auto-renews unless cancelled at least 24 hours before the end of the current period.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.4),
-                  fontSize: 11,
-                ),
-              ),
-              const SizedBox(height: 16),
-              
-              // Not now button
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(
-                  'Not Now',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ],
+      child: Column(
+        children: [
+          // Drag handle
+          Container(
+            width: 40,
+            height: 4,
+            margin: const EdgeInsets.only(top: 16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
-        ),
+          // Scrollable content
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: EdgeInsets.fromLTRB(24, 16, 24, bottomPadding + 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Crown icon or Avatar
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [Color(0xFFFFD700), Color(0xFFFF8C00)]),
+                      shape: BoxShape.circle,
+                      boxShadow: isIOSWeb
+                          ? null
+                          : [
+                              BoxShadow(
+                                color: const Color(0xFFFFD700).withValues(alpha: 0.4),
+                                blurRadius: 20,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                    ),
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            const Color(0xFFB76EF9),
+                            const Color(0xFF8B5CF6),
+                            const Color(0xFF7C3AED),
+                          ],
+                        ),
+                      ),
+                      child: const Icon(Icons.auto_awesome, color: Colors.white, size: 36),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  // Title
+                  const Text(
+                    'Unlock Premium',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  // Context message or default subtitle
+                  Text(
+                    widget.contextMessage ?? 'Unlimited generations & exclusive styles',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 16),
+                  ),
+                  const SizedBox(height: 24),
+                  // Features list
+                  _buildFeatureRow(Icons.all_inclusive, 'Unlimited daily generations'),
+                  _buildFeatureRow(Icons.flash_on_rounded, 'Batch generation mode'),
+                  _buildFeatureRow(Icons.star_rounded, 'Exclusive premium styles'),
+                  _buildFeatureRow(Icons.high_quality_rounded, 'Priority processing'),
+                  _buildFeatureRow(Icons.block, 'No ads ever'),
+                  const SizedBox(height: 28),
+                  // Plan options
+                  ...(_plans.map((plan) => _buildPlanTile(plan))),
+                  const SizedBox(height: 24),
+                  // Subscribe button
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _isProcessing ? null : _handleSubscribe,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFD700),
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+                        elevation: 0,
+                      ),
+                      child: _isProcessing
+                          ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+                          : Text(
+                              buttonText,
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Secondary CTA for Annual without trial
+                  if (_selectedPlan == SubscriptionPlan.annual) ...[
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: OutlinedButton(
+                        onPressed: _isProcessing ? null : _handleSubscribe,
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.white.withValues(alpha: 0.5)),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+                        ),
+                        child: const Text('Continue with Annual Subscription', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  // Restore purchases
+                  TextButton(
+                    onPressed: _isProcessing ? null : _handleRestore,
+                    child: Text('Restore Purchases', style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14)),
+                  ),
+                  const SizedBox(height: 8),
+                  // Legal text
+                  Text(
+                    'Cancel anytime. Subscription auto-renews unless cancelled at least 24 hours before the end of the current period.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11),
+                  ),
+                  const SizedBox(height: 16),
+                  // Not now button
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text('Not Now', style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 16)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
