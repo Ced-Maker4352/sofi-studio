@@ -2315,62 +2315,59 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
         child: Container(
           color: Colors.black.withValues(alpha: 0.5),
           child: SafeArea(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Title
-                Text(
-                  'Welcome to Sofi Studio!',
-                  style: GoogleFonts.poppins(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Welcome to Sofi Studio!',
+                    style: GoogleFonts.poppins(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                
-                // Hint buttons
-                _HintButton(
-                  icon: Icons.tune,
-                  label: 'Tap Design Studio',
-                  subtitle: 'to start styling',
-                  onTap: () {
-                    _dismissCanvasHint();
-                    controller.openDrawer();
-                  },
-                ),
-                const SizedBox(height: 12),
-                _HintButton(
-                  icon: Icons.history_rounded,
-                  label: 'Tap History',
-                  subtitle: 'to view your creations',
-                  onTap: () {
-                    _dismissCanvasHint();
-                    _openHistory();
-                  },
-                ),
-                const SizedBox(height: 12),
-                _HintButton(
-                  icon: Icons.favorite_rounded,
-                  label: 'Tap Favorites',
-                  subtitle: 'to save & reuse outfits',
-                  onTap: () {
-                    _dismissCanvasHint();
-                    controller.openDrawer();
-                  },
-                ),
-                
-                const SizedBox(height: 32),
-                
-                // Dismiss hint
-                Text(
-                  'Tap anywhere to dismiss',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    color: Colors.white70,
+                  const SizedBox(height: 24),
+                  _HintButton(
+                    icon: Icons.tune,
+                    label: 'Tap Design Studio',
+                    subtitle: 'to start styling',
+                    onTap: () {
+                      _dismissCanvasHint();
+                      controller.openDrawer();
+                    },
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  _HintButton(
+                    icon: Icons.history_rounded,
+                    label: 'Tap History',
+                    subtitle: 'to view your creations',
+                    onTap: () {
+                      _dismissCanvasHint();
+                      _openHistory();
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  _HintButton(
+                    icon: Icons.favorite_rounded,
+                    label: 'Tap Favorites',
+                    subtitle: 'to save & reuse outfits',
+                    onTap: () {
+                      _dismissCanvasHint();
+                      controller.openDrawer();
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                  Text(
+                    'Tap anywhere to dismiss',
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
