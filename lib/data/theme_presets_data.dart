@@ -12,6 +12,7 @@ Preserve pose, proportions, outfit, and framing.
 Do not crop. Do not change framing.
 ''',
     assetPath: 'images/Premium page thumbnails/Pixar.png',
+    localAssetPath: 'assets/images/Pixar_style_3d_character_animation_thumbnail_null_1767430758269.jpg',
     variants: const [
       ThemeVariant(id: 'soft', label: 'Soft', prompt: 'Gentle lighting, warm softness.'),
       ThemeVariant(id: 'hero', label: 'Hero', prompt: 'Cinematic contrast, heroic lighting.'),
@@ -30,6 +31,7 @@ Clean linework, expressive face, stylized shading.
 Preserve full-body proportions, pose, and framing.
 ''',
     assetPath: 'images/Premium page thumbnails/Anime.png',
+    localAssetPath: 'assets/images/Anime_style_character_illustration_thumbnail_null_1767430759094.jpg',
     variants: const [
       ThemeVariant(id: 'clean', label: 'Clean', prompt: 'Modern clean anime style.'),
       ThemeVariant(id: 'ghibli', label: 'Ghibli', prompt: 'Soft storybook warmth, ghibli-inspired.'),
@@ -48,6 +50,7 @@ Bold outlines, graphic shading, dramatic lighting.
 Full body visible, stable framing.
 ''',
     assetPath: 'images/Premium page thumbnails/Comic.png',
+    localAssetPath: 'assets/images/Comic_book_graphic_novel_illustration_thumbnail_null_1767430759573.jpg',
     variants: const [
       ThemeVariant(id: 'western', label: 'Western', prompt: 'Classic Western comic rendering.'),
       ThemeVariant(id: 'manga', label: 'Manga', prompt: 'Manga-inspired comic ink shading.'),
@@ -66,6 +69,7 @@ Powerful stance, dramatic lighting, detailed costume.
 Full body preserved, clean silhouette.
 ''',
     assetPath: 'images/Premium page thumbnails/Super_Hero.png',
+    localAssetPath: 'assets/images/Superhero_character_cinematic_portrait_thumbnail_null_1767430760282.jpg',
     variants: const [
       ThemeVariant(id: 'classic', label: 'Classic', prompt: 'Classic heroic vibe, clean costume lines.'),
       ThemeVariant(id: 'dark', label: 'Dark', prompt: 'Moody vigilante, darker palette and lighting.'),
@@ -84,6 +88,7 @@ Premium fabrics, studio lighting, magazine composition.
 Full body visible, runway-ready.
 ''',
     assetPath: 'images/Premium page Fashion.png',
+    localAssetPath: 'assets/images/High_fashion_editorial_runway_model_thumbnail_null_1767430760949.jpg',
     variants: const [
       ThemeVariant(id: 'runway', label: 'Runway', prompt: 'Runway editorial styling, bold fashion.'),
       ThemeVariant(id: 'street', label: 'Streetwear', prompt: 'Urban streetwear styling, modern vibe.'),
@@ -102,6 +107,7 @@ Mystical atmosphere, elegant costume details.
 Full body preserved, storybook realism.
 ''',
     assetPath: 'images/Premium page thumbnails/Fantasy.png',
+    localAssetPath: 'assets/images/Fantasy_magical_character_landscape_thumbnail_null_1767430761693.jpg',
     variants: const [
       ThemeVariant(id: 'elf', label: 'Elf/Mage', prompt: 'Mystical mage aesthetics, subtle magic glow.'),
       ThemeVariant(id: 'royal', label: 'Royal', prompt: 'Royal fantasy elegance, ornate fabrics.'),
@@ -120,6 +126,7 @@ Futuristic materials, cinematic sci-fi lighting.
 Full body preserved, clean silhouette.
 ''',
     assetPath: 'images/Premium page thumbnails/SciFi.png',
+    localAssetPath: 'assets/images/Sci-fi_futuristic_character_portrait_thumbnail_null_1767430762305.jpg',
     variants: const [
       ThemeVariant(id: 'cyberpunk', label: 'Cyberpunk', prompt: 'Neon cyberpunk glow, urban future.'),
       ThemeVariant(id: 'space', label: 'Space', prompt: 'Space explorer suit, high-tech realism.'),
@@ -138,6 +145,7 @@ Cinematic lighting, premium realism.
 Preserve natural human proportions and framing.
 ''',
     assetPath: 'images/Premium page thumbnails/Realistic.png',
+    localAssetPath: 'assets/images/Realistic_human_portrait_photography_thumbnail_null_1767430763061.jpg',
     variants: const [
       ThemeVariant(id: 'studio', label: 'Studio', prompt: 'Professional studio realism.'),
       ThemeVariant(id: 'cinema', label: 'Cinematic', prompt: 'Cinematic realism tone, film lighting.'),
@@ -157,6 +165,7 @@ Film-grade lighting, high-end lens look, ultra-polished materials.
 Preserve pose, proportions, outfit, and framing.
 ''',
     assetPath: 'images/Premium page thumbnails/Lux_Cinematic.png',
+    localAssetPath: 'assets/images/Lux_cinematic_movie_style_portrait_thumbnail_null_1767430764387.jpg',
     variants: const [
       ThemeVariant(id: 'gold', label: 'Gold', prompt: 'Golden-hour cinematic lighting, soft glow.'),
       ThemeVariant(id: 'neon', label: 'Neon', prompt: 'Neon city cinematic lighting, glossy reflections.'),
@@ -176,6 +185,7 @@ Premium plastics, subtle micro-textures, studio product lighting.
 Preserve framing and silhouette.
 ''',
     assetPath: 'images/Premium page thumbnails/Toy_Delux.png',
+    localAssetPath: 'assets/images/Toy_delux_3d_character_render_thumbnail_null_1767430763548.jpg',
     variants: const [
       ThemeVariant(id: 'matte', label: 'Matte', prompt: 'Matte deluxe finish, soft reflections.'),
       ThemeVariant(id: 'gloss', label: 'Gloss', prompt: 'High-gloss premium reflections, showroom look.'),

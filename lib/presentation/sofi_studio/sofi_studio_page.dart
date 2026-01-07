@@ -1293,20 +1293,20 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
           data: ThemeData.light(),
           child: SafeArea(
             top: false,
-            child: SingleChildScrollView(
+            child: FractionallySizedBox(
+              heightFactor: 0.9, // allow up to 90% screen height
               child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: _radiusTop24,
+                ),
                 padding: EdgeInsets.only(
                   left: 20,
                   right: 20,
                   top: 20,
                   bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
                 ),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: _radiusTop24,
-                ),
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Center(
@@ -1330,34 +1330,45 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    _buildSheetOption(
-                      icon: Icons.camera_alt_outlined,
-                      label: 'Take Live Picture',
-                      onTap: () => Navigator.pop(ctx, 0),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildSheetOption(
-                      icon: Icons.photo_library_outlined,
-                      label: 'Choose from Gallery',
-                      onTap: () => Navigator.pop(ctx, 1),
-                    ),
-                    const SizedBox(height: 8),
-                    _buildSheetOption(
-                      icon: Icons.brush_outlined,
-                      label: 'Use Current Canvas',
-                      onTap: () => Navigator.pop(ctx, 2),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12),
-                      child: Divider(color: Colors.black12),
-                    ),
-                    _buildSheetOption(
-                      icon: Icons.arrow_forward_rounded,
-                      label: 'Go Directly to Premium',
-                      subtitle: 'Browse styles, upload later',
-                      isPrimary: true,
-                      onTap: () => Navigator.pop(ctx, 3),
+                    const SizedBox(height: 12),
+                    // Make inner content scroll when space is tight
+                    Expanded(
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSheetOption(
+                              icon: Icons.camera_alt_outlined,
+                              label: 'Take Live Picture',
+                              onTap: () => Navigator.pop(ctx, 0),
+                            ),
+                            const SizedBox(height: 8),
+                            _buildSheetOption(
+                              icon: Icons.photo_library_outlined,
+                              label: 'Choose from Gallery',
+                              onTap: () => Navigator.pop(ctx, 1),
+                            ),
+                            const SizedBox(height: 8),
+                            _buildSheetOption(
+                              icon: Icons.brush_outlined,
+                              label: 'Use Current Canvas',
+                              onTap: () => Navigator.pop(ctx, 2),
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              child: Divider(color: Colors.black12),
+                            ),
+                            _buildSheetOption(
+                              icon: Icons.arrow_forward_rounded,
+                              label: 'Go Directly to Premium',
+                              subtitle: 'Browse styles, upload later',
+                              isPrimary: true,
+                              onTap: () => Navigator.pop(ctx, 3),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ],
                 ),

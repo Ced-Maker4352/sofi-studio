@@ -223,74 +223,79 @@ class _FeaturedBanner extends StatelessWidget {
                     final verticalSpacing = isVeryTight ? 4.0 : (isTight ? 6.0 : 8.0);
                     final midSpacing = isVeryTight ? 6.0 : (isTight ? 8.0 : 10.0);
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10, vertical: chipVPad),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.auto_awesome, size: 12, color: Colors.amber),
-                              SizedBox(width: 4),
-                              Text(
-                                'Featured',
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-                              ),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: verticalSpacing),
-                        Text(
-                          theme?.label ?? 'Explore Styles',
-                          style: TextStyle(
-                            fontSize: titleSize,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          theme?.description ?? 'Discover new looks',
-                          style: TextStyle(
-                            fontSize: subtitleSize,
-                            color: Colors.white.withValues(alpha: 0.9),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        SizedBox(height: midSpacing),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 14, vertical: ctaVPad),
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Try Now',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 12,
+                    // Ensure the banner content never overflows by scaling down if needed
+                    return FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: chipVPad),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.auto_awesome, size: 12, color: Colors.amber),
+                                SizedBox(width: 4),
+                                Text(
+                                  'Featured',
+                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
                                 ),
-                              ),
-                              SizedBox(width: 4),
-                              Icon(Icons.arrow_forward, size: 12, color: Colors.white),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                          SizedBox(height: verticalSpacing),
+                          Text(
+                            theme?.label ?? 'Explore Styles',
+                            style: TextStyle(
+                              fontSize: titleSize,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            theme?.description ?? 'Discover new looks',
+                            style: TextStyle(
+                              fontSize: subtitleSize,
+                              color: Colors.white.withValues(alpha: 0.9),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: midSpacing),
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 14, vertical: ctaVPad),
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Try Now',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                SizedBox(width: 4),
+                                Icon(Icons.arrow_forward, size: 12, color: Colors.white),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   },
                 ),
@@ -384,9 +389,10 @@ class _StylePresetChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final icon = preset['icon'] as String? ?? '';
     final label = preset['label'] as String? ?? 'Style';
+    final key = (preset['key'] as String? ?? label).toString().toLowerCase();
     
     // Generate a color based on label
-    final colors = _getColorsForStyle(label);
+    final colors = _getColorsForStyle(key, label);
     
     return GestureDetector(
       onTap: onTap,
@@ -410,7 +416,7 @@ class _StylePresetChip extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _getIconForStyle(icon, label),
+            _getIconForStyle(icon, key, label),
             const SizedBox(height: 8),
             Text(
               label,
@@ -429,23 +435,31 @@ class _StylePresetChip extends StatelessWidget {
     );
   }
   
-  Widget _getIconForStyle(String icon, String label) {
+  Widget _getIconForStyle(String icon, String key, String label) {
     // Use Material icons instead of emoji characters
     IconData iconData;
-    switch (label.toLowerCase()) {
+    switch (key) {
+      case 'clean_girl':
       case 'clean girl':
+      case 'clean girl neutral set':
         iconData = Icons.spa;
         break;
+      case 'y2k':
       case 'y2k style':
+      case 'pastel y2k set':
         iconData = Icons.star;
         break;
+      case 'street_minimal':
       case 'street minimal':
         iconData = Icons.location_city;
         break;
+      case 'soft_girl':
       case 'soft girl':
+      case 'soft girl aesthetic':
         iconData = Icons.favorite;
         break;
       case 'academia':
+      case 'academia aesthetic':
         iconData = Icons.menu_book;
         break;
       default:
@@ -454,17 +468,26 @@ class _StylePresetChip extends StatelessWidget {
     return Icon(iconData, size: 32, color: Colors.white);
   }
   
-  List<Color> _getColorsForStyle(String label) {
-    switch (label.toLowerCase()) {
+  List<Color> _getColorsForStyle(String key, String label) {
+    final k = key.isNotEmpty ? key : label.toLowerCase();
+    switch (k) {
+      case 'clean_girl':
       case 'clean girl':
+      case 'clean girl neutral set':
         return [const Color(0xFFF5E6D3), const Color(0xFFE8D4C4)];
+      case 'y2k':
       case 'y2k style':
+      case 'pastel y2k set':
         return [const Color(0xFF7DD3FC), const Color(0xFFC4B5FD)];
+      case 'street_minimal':
       case 'street minimal':
         return [const Color(0xFF374151), const Color(0xFF1F2937)];
+      case 'soft_girl':
       case 'soft girl':
+      case 'soft girl aesthetic':
         return [const Color(0xFFFBCFE8), const Color(0xFFF9A8D4)];
       case 'academia':
+      case 'academia aesthetic':
         return [const Color(0xFF92400E), const Color(0xFF78350F)];
       default:
         return [const Color(0xFFA78BFA), const Color(0xFF8B5CF6)];
@@ -513,6 +536,7 @@ class _ThemeCard extends StatelessWidget {
                   if (theme.assetPath != null)
                     _FirebaseThemeImage(
                       path: theme.assetPath!,
+                      localAssetPath: theme.localAssetPath,
                       fallbackColor: _getColorForTheme(theme.id),
                       fallbackIcon: _getIconForTheme(theme.id),
                     )
@@ -685,11 +709,13 @@ class _ThemeCard extends StatelessWidget {
 /// Firebase image loader for theme thumbnails
 class _FirebaseThemeImage extends StatefulWidget {
   final String path;
+  final String? localAssetPath;
   final Color fallbackColor;
   final IconData fallbackIcon;
   
   const _FirebaseThemeImage({
     required this.path,
+    this.localAssetPath,
     required this.fallbackColor,
     required this.fallbackIcon,
   });
@@ -753,6 +779,21 @@ class _FirebaseThemeImageState extends State<_FirebaseThemeImage> {
     }
 
     if (_error || _url == null) {
+      // Try local asset fallback if provided
+      if (widget.localAssetPath != null) {
+        return Image.asset(
+          widget.localAssetPath!,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Container(
+            color: widget.fallbackColor,
+            child: Icon(
+              widget.fallbackIcon,
+              color: Colors.white.withValues(alpha: 0.5),
+              size: 48,
+            ),
+          ),
+        );
+      }
       return Container(
         color: widget.fallbackColor,
         child: Icon(
