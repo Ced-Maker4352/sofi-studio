@@ -443,12 +443,29 @@ class _ShareHubPageState extends State<ShareHubPage> with SingleTickerProviderSt
   Widget _buildImagePreview() {
     final bytes = base64Decode(widget.imageBase64!);
     
+    // Guard against empty bytes that can crash web renderer
+    if (bytes.isEmpty) {
+      return Container(
+        height: 300,
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Icon(Icons.broken_image, color: Colors.grey, size: 48),
+      );
+    }
+    
     Widget imageWidget = ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: Image.memory(
         bytes,
         fit: BoxFit.cover,
         width: double.infinity,
+        errorBuilder: (context, error, stackTrace) => Container(
+          height: 300,
+          color: Colors.grey[300],
+          child: const Icon(Icons.broken_image, color: Colors.grey, size: 48),
+        ),
       ),
     );
     

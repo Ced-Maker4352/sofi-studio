@@ -183,9 +183,6 @@ class StorageService {
     // 2) Folder typo: posses -> poses, and reverse just in case
     if (path.contains('/posses/')) alts.add(path.replaceFirst('/posses/', '/poses/'));
     if (path.contains('/poses/')) alts.add(path.replaceFirst('/poses/', '/posses/'));
-    // 2b) Background folder case variations
-    if (path.contains('/Background/')) alts.add(path.replaceFirst('/Background/', '/background/'));
-    if (path.contains('/background/')) alts.add(path.replaceFirst('/background/', '/Background/'));
 
     // 3) Filename stem: pose_ -> poses_ and reverse
     final lastSlash = path.lastIndexOf('/');
@@ -225,29 +222,6 @@ class StorageService {
       if (dir.contains('/base/thumbs/') && file.contains('_base_thumb')) {
         alts.add('$dir${file.replaceFirst('_base_thumb', '_thumb')}');
       }
-
-      // 7) Base stage mapping variations
-      // a) If given legacy 'images/dolls/doll_X_base.png', try new structured path
-      final legacyDollMatch = RegExp(r'^doll_(\d+)_base\.png$').firstMatch(file);
-      if (legacyDollMatch != null) {
-        final i = int.tryParse(legacyDollMatch.group(1)!);
-        if (i != null) {
-          final num = i.toString().padLeft(2, '0');
-          alts.add('images/dolls/base/stage/base_${num}_base_stage.png');
-        }
-      }
-
-      // b) If given structured '.../base/stage/base_XX_base_stage.png', try legacy flat path
-      if (dir.contains('/base/stage/') && file.startsWith('base_') && file.endsWith('_base_stage.png')) {
-        final match = RegExp(r'^base_(\d{2})_base_stage\.png$').firstMatch(file);
-        if (match != null) {
-          final numStr = match.group(1)!;
-          final i = int.tryParse(numStr);
-          if (i != null) {
-            alts.add('images/dolls/doll_${i}_base.png');
-          }
-        }
-      }
     }
 
     // 7) Combine folder and stem corrections together
@@ -285,8 +259,8 @@ class StorageService {
     for (var i = 1; i <= 10; i++) {
       final num = i.toString().padLeft(2, '0');
       paths.add('images/dolls/base/thumbs/base_${num}_base_thumb.png');
-      // Stage under base/stage to match thumbnails 1:1
-      paths.add('images/dolls/base/stage/base_${num}_base_stage.png');
+      // Correct stage path per provided structure
+      paths.add('images/dolls/doll_${i}_base.png');
     }
     // Premium dolls (5 dolls - thumbs and stage images)
     for (var i = 1; i <= 5; i++) {
@@ -295,26 +269,26 @@ class StorageService {
       // Correct stage path per provided structure
       paths.add('images/dolls/special/stage/special_${num}_base_stage.png');
     }
-    // Full outfits (24)
-    for (var i = 1; i <= 24; i++) {
+    // Full outfits
+    for (var i = 1; i <= 6; i++) {
       final num = i.toString().padLeft(2, '0');
       paths.add('images/full outfit/full_outfit_$num.jpg');
     }
-    // Hair, Top, Bottom, Shoes, Accessories, Hats, Jewelry, Glasses (12 each)
+    // Hair, Top, Bottom, Shoes, etc.
     final categories = ['hair', 'top', 'bottom', 'shoes', 'accessories', 'hats', 'jewelry', 'glasses'];
     for (final cat in categories) {
-      for (var i = 1; i <= 12; i++) {
+      for (var i = 1; i <= 6; i++) {
         final num = i.toString().padLeft(2, '0');
         paths.add('images/$cat/${cat}_$num.jpg');
       }
     }
-    // Poses (12)
-    for (var i = 1; i <= 12; i++) {
+    // Poses
+    for (var i = 1; i <= 6; i++) {
       final num = i.toString().padLeft(2, '0');
       paths.add('images/posses/pose_$num.jpg');
     }
-    // Backgrounds (12)
-    for (var i = 1; i <= 12; i++) {
+    // Backgrounds
+    for (var i = 1; i <= 6; i++) {
       final num = i.toString().padLeft(2, '0');
       paths.add('images/Background/background_$num.jpg');
     }
@@ -335,76 +309,6 @@ class StorageService {
     
     _drawerUrlsCached = true;
     debugPrint('[Storage] Pre-cached ${_urlCache.length} drawer URLs');
-  }
-
-  /// Optional diagnostic to self-check mapping between prompts/descriptions and thumbnails.
-  /// It only attempts to resolve download URLs (no bytes), and logs missing entries.
-  Future<void> verifyAllAssetMappings() async {
-    debugPrint('[Storage] Verifying asset mappings (thumbs ↔ prompts, dolls ↔ stages)...');
-
-    // 1) Dolls
-    for (var i = 1; i <= 10; i++) {
-      final num = i.toString().padLeft(2, '0');
-      final thumb = 'images/dolls/base/thumbs/base_${num}_base_thumb.png';
-      final stage = 'images/dolls/base/stage/base_${num}_base_stage.png';
-      final t = await getDownloadUrlSafe(thumb);
-      final s = await getDownloadUrlSafe(stage);
-      if (t == null) debugPrint('[Verify] Missing base doll thumb: $thumb');
-      if (s == null) debugPrint('[Verify] Missing base doll stage: $stage');
-    }
-    for (var i = 1; i <= 5; i++) {
-      final num = i.toString().padLeft(2, '0');
-      final thumb = 'images/dolls/special/thumbs/special_${num}_base_thumb.png';
-      final stage = 'images/dolls/special/stage/special_${num}_base_stage.png';
-      final t = await getDownloadUrlSafe(thumb);
-      final s = await getDownloadUrlSafe(stage);
-      if (t == null) debugPrint('[Verify] Missing premium doll thumb: $thumb');
-      if (s == null) debugPrint('[Verify] Missing premium doll stage: $stage');
-    }
-
-    // 2) Categories (12 each)
-    Future<void> verifyCat(String folder, String stem, int count) async {
-      for (var i = 1; i <= count; i++) {
-        final num = i.toString().padLeft(2, '0');
-        final p = 'images/$folder/${stem}_$num.jpg';
-        final url = await getDownloadUrlSafe(p);
-        if (url == null) debugPrint('[Verify] Missing $folder thumb: $p');
-      }
-    }
-    await verifyCat('hair', 'hair', 12);
-    await verifyCat('top', 'top', 12);
-    await verifyCat('bottom', 'bottom', 12);
-    await verifyCat('shoes', 'shoes', 12);
-    await verifyCat('accessories', 'accessories', 12);
-    await verifyCat('hats', 'hats', 12);
-    await verifyCat('jewelry', 'jewelry', 12);
-    await verifyCat('glasses', 'glasses', 12);
-
-    // 3) Poses
-    for (var i = 1; i <= 12; i++) {
-      final num = i.toString().padLeft(2, '0');
-      final p = 'images/posses/pose_$num.jpg';
-      final url = await getDownloadUrlSafe(p);
-      if (url == null) debugPrint('[Verify] Missing poses thumb: $p');
-    }
-
-    // 4) Backgrounds
-    for (var i = 1; i <= 12; i++) {
-      final num = i.toString().padLeft(2, '0');
-      final p = 'images/Background/background_$num.jpg';
-      final url = await getDownloadUrlSafe(p);
-      if (url == null) debugPrint('[Verify] Missing Background thumb: $p');
-    }
-
-    // 5) Full outfits (24)
-    for (var i = 1; i <= 24; i++) {
-      final num = i.toString().padLeft(2, '0');
-      final p = 'images/full outfit/full_outfit_$num.jpg';
-      final url = await getDownloadUrlSafe(p);
-      if (url == null) debugPrint('[Verify] Missing full outfit thumb: $p');
-    }
-
-    debugPrint('[Storage] Verification pass complete.');
   }
 
   /// Download bytes for an existing object by storage [path].

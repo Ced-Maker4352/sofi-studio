@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 class ImageGenService {
@@ -31,10 +30,10 @@ class ImageGenService {
         }
       }
 
-      debugPrint("Generation error: ${response.body}");
+      print("Generation error: ${response.body}");
       return null;
     } catch (e) {
-      debugPrint("Exception during image generation: $e");
+      print("Exception during image generation: $e");
       return null;
     }
   }

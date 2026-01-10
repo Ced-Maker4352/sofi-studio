@@ -281,17 +281,16 @@ class _SofiMusicPageState extends State<SofiMusicPage> with SingleTickerProvider
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        gradient: isCurrent
-            ? LinearGradient(colors: [const Color(0xFF7C4DFF).withValues(alpha: 0.3), const Color(0xFFE040FB).withValues(alpha: 0.1)])
-            : null,
-        color: isCurrent ? null : Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isCurrent ? const Color(0xFFE040FB).withValues(alpha: 0.5) : Colors.transparent,
-          width: isCurrent ? 1 : 0,
-        ),
-      ),
+      decoration: isCurrent
+          ? BoxDecoration(
+              gradient: LinearGradient(colors: [const Color(0xFF7C4DFF).withValues(alpha: 0.3), const Color(0xFFE040FB).withValues(alpha: 0.1)]),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE040FB).withValues(alpha: 0.5), width: 1),
+            )
+          : BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(16),
+            ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         leading: AnimatedContainer(
@@ -327,7 +326,9 @@ class _SofiMusicPageState extends State<SofiMusicPage> with SingleTickerProvider
     );
   }
 
-  Widget _buildHeroCard(Map<String, String> playlist) => GestureDetector(
+  Widget _buildHeroCard(Map<String, String> playlist) {
+    final hasImage = playlist['image'] != null && playlist['image']!.isNotEmpty;
+    return GestureDetector(
     onTap: () => ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('${playlist['title']} - Coming Soon!'), behavior: SnackBarBehavior.floating, backgroundColor: const Color(0xFF7C4DFF)),
     ),
@@ -335,7 +336,14 @@ class _SofiMusicPageState extends State<SofiMusicPage> with SingleTickerProvider
       height: 200,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        image: DecorationImage(image: AssetImage(playlist['image']!), fit: BoxFit.cover, colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: 0.3), BlendMode.darken)),
+        image: hasImage 
+            ? DecorationImage(
+                image: AssetImage(playlist['image']!), 
+                fit: BoxFit.cover, 
+                colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: 0.3), BlendMode.darken),
+                onError: (_, __) => debugPrint('Hero card image failed: ${playlist['image']}'),
+              )
+            : null,
         boxShadow: [BoxShadow(color: const Color(0xFFE040FB).withValues(alpha: 0.3), blurRadius: 24, offset: const Offset(0, 12))],
       ),
       child: Stack(
@@ -376,8 +384,11 @@ class _SofiMusicPageState extends State<SofiMusicPage> with SingleTickerProvider
       ),
     ),
   );
+  }
 
-  Widget _buildPlaylistCard(Map<String, String> playlist) => GestureDetector(
+  Widget _buildPlaylistCard(Map<String, String> playlist) {
+    final hasImage = playlist['image'] != null && playlist['image']!.isNotEmpty;
+    return GestureDetector(
     onTap: () {},
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -387,7 +398,13 @@ class _SofiMusicPageState extends State<SofiMusicPage> with SingleTickerProvider
           height: 140,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            image: DecorationImage(image: AssetImage(playlist['image']!), fit: BoxFit.cover),
+            image: hasImage
+                ? DecorationImage(
+                    image: AssetImage(playlist['image']!), 
+                    fit: BoxFit.cover,
+                    onError: (_, __) => debugPrint('Playlist card image failed: ${playlist['image']}'),
+                  )
+                : null,
             boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 12, offset: const Offset(0, 6))],
           ),
         ),
@@ -400,21 +417,34 @@ class _SofiMusicPageState extends State<SofiMusicPage> with SingleTickerProvider
       ],
     ),
   );
+  }
 
-  Widget _buildPlaylistRow(Map<String, String> playlist) => Container(
+  Widget _buildPlaylistRow(Map<String, String> playlist) {
+    final hasImage = playlist['image'] != null && playlist['image']!.isNotEmpty;
+    return Container(
     margin: const EdgeInsets.only(bottom: 8),
     child: ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Container(
         width: 56,
         height: 56,
-        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), image: DecorationImage(image: AssetImage(playlist['image']!), fit: BoxFit.cover)),
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12), 
+            image: hasImage 
+                ? DecorationImage(
+                    image: AssetImage(playlist['image']!), 
+                    fit: BoxFit.cover,
+                    onError: (_, __) => debugPrint('Playlist row image failed: ${playlist['image']}'),
+                  )
+                : null,
+        ),
       ),
       title: Text(playlist['title']!, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
       subtitle: Text(playlist['subtitle']!, style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 13)),
       trailing: Text(playlist['duration']!, style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
     ),
   );
+  }
 
   Widget _buildMiniPlayer() {
     final track = _tracks[_currentTrackIndex];

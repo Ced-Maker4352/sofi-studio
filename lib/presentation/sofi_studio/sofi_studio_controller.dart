@@ -46,7 +46,7 @@ class SofiStudioController extends ChangeNotifier {
     // ---------------------------
     // 10 BASE DOLLS (Firebase Storage)
     // Thumbs: images/dolls/base/thumbs/base_XX_base_thumb.png
-    // Stage: images/dolls/base/stage/base_XX_base_stage.png
+    // Stage: images/dolls/doll_X_base.png
     // ---------------------------
     for (int i = 1; i <= 10; i++) {
       final num = two(i);
@@ -54,7 +54,7 @@ class SofiStudioController extends ChangeNotifier {
         SofiDoll(
           id: "$i",
           thumbPath: "images/dolls/base/thumbs/base_${num}_base_thumb.png",
-          stagePath: "images/dolls/base/stage/base_${num}_base_stage.png",
+          stagePath: "images/dolls/doll_${i}_base.png",
           isPremium: false,
           isStoragePath: true, // Load from Firebase Storage
         ),

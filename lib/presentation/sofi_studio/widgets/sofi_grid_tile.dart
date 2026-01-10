@@ -26,14 +26,16 @@ child: Column(
 children: [
 Expanded(
 child: Container(
-decoration: BoxDecoration(
-color: baseColor,
-borderRadius: BorderRadius.circular(18),
-border: Border.all(
-color: isSelected ? const Color(0xFF4A90E2) : Colors.transparent,
-width: isSelected ? 2 : 0,
-),
-),
+decoration: isSelected
+    ? BoxDecoration(
+        color: baseColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFF4A90E2), width: 2),
+      )
+    : BoxDecoration(
+        color: baseColor,
+        borderRadius: BorderRadius.circular(18),
+      ),
 clipBehavior: Clip.antiAlias,
 child: Center(child: child),
 ),

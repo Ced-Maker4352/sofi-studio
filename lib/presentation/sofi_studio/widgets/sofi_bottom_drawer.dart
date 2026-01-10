@@ -243,63 +243,69 @@ class _SofiBottomDrawerState extends State<SofiBottomDrawer> {
   }
   
   Widget _buildDrawerContent(double bottomPadding) {
-    // Apple-safe pattern: fixed handle + Expanded scrollable content
-    return Column(children: [
-      // Drag handle with drag gestures
-      GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onVerticalDragStart: _onDragStart,
-        onVerticalDragUpdate: _onDragUpdate,
-        onVerticalDragEnd: _onDragEnd,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Center(
-            child: Container(
-              width: 40,
-              height: 5,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(2.5),
-              ),
-            ),
-          ),
-        ),
-      ),
-      Expanded(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(16, 8, 16, bottomPadding + 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    return Column(
             children: [
-              // Generate button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: widget.onGenerate,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: SofiStudioTheme.purple,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                    elevation: 4,
+              // Drag handle
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onVerticalDragStart: _onDragStart,
+                onVerticalDragUpdate: _onDragUpdate,
+                onVerticalDragEnd: _onDragEnd,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Center(
+                    child: Container(
+                      width: 40,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(2.5),
+                      ),
+                    ),
                   ),
-                  child: const Text('Generate', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
                 ),
               ),
+              // Generate button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: widget.onGenerate,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: SofiStudioTheme.purple,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      elevation: 4,
+                    ),
+                    child: const Text(
+                      'Generate',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              
               // Doll Picker Section
               if (widget.baseDolls.isNotEmpty || widget.premiumDolls.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 _buildDollPicker(),
               ],
+              
               const SizedBox(height: 8),
-              // Category chips row
+              // Category chips row - fixed height with proper constraints
               SizedBox(
                 height: 44,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 0),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   itemCount: EditCategory.values.length,
                   separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (context, index) {
@@ -311,7 +317,9 @@ class _SofiBottomDrawerState extends State<SofiBottomDrawer> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                         decoration: BoxDecoration(
-                          color: isSelected ? SofiStudioTheme.purple : Colors.white.withValues(alpha: 0.1),
+                          color: isSelected
+                              ? SofiStudioTheme.purple
+                              : Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: isSelected
@@ -343,14 +351,17 @@ class _SofiBottomDrawerState extends State<SofiBottomDrawer> {
                   },
                 ),
               ),
-              const SizedBox(height: 16),
-              // Options grid (non-scrollable, lets outer scroll handle extra height)
-              _buildCategoryOptions(),
+              const SizedBox(height: 12),
+              // Expanded content area for options with proper bottom padding
+              Expanded(
+                child: Padding(
+                  // Add extra bottom padding to prevent overflow (safe area + extra space)
+                  padding: EdgeInsets.only(bottom: bottomPadding + 20),
+                  child: _buildCategoryOptions(),
+                ),
+              ),
             ],
-          ),
-        ),
-      ),
-    ]);
+          );
   }
   
   /// Build the doll picker section
@@ -494,16 +505,13 @@ class _SofiBottomDrawerState extends State<SofiBottomDrawer> {
     final isLocked = _isCategoryLocked(_selectedCategory);
 
     return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 0),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         mainAxisSpacing: 12,
         crossAxisSpacing: 12,
         childAspectRatio: 0.85,
       ),
-      // Important: let the parent SingleChildScrollView handle scrolling
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
       itemCount: options.length,
       itemBuilder: (context, index) {
         final option = options[index];

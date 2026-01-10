@@ -9,10 +9,7 @@ class SofiStylePresets {
 
   static final presets = <Map<String, dynamic>>[
     {
-      // Align label with Full Outfits for consistent mapping across app
-      "label": "Clean Girl Neutral Set",
-      "key": "clean_girl",
-      "fullOutfitLabel": "Clean Girl Neutral Set",
+      "label": "Clean Girl",
       "icon": "✨",
       "options": {
         EditCategory.hair: 2,       // silky straight
@@ -26,9 +23,7 @@ class SofiStylePresets {
     },
 
     {
-      "label": "Pastel Y2K Set",
-      "key": "y2k",
-      "fullOutfitLabel": "Pastel Y2K Set",
+      "label": "Y2K Style",
       "icon": "🩵",
       "options": {
         EditCategory.hair: 9,       // wavy half-up
@@ -43,8 +38,6 @@ class SofiStylePresets {
 
     {
       "label": "Street Minimal",
-      "key": "street_minimal",
-      "fullOutfitLabel": "Street Minimal",
       "icon": "🖤",
       "options": {
         EditCategory.hair: 3,       // straight hair
@@ -58,9 +51,7 @@ class SofiStylePresets {
     },
 
     {
-      "label": "Soft Girl Aesthetic",
-      "key": "soft_girl",
-      "fullOutfitLabel": "Soft Girl Aesthetic",
+      "label": "Soft Girl",
       "icon": "🌸",
       "options": {
         EditCategory.hair: 10,      // long wavy half-up
@@ -74,9 +65,7 @@ class SofiStylePresets {
     },
 
     {
-      "label": "Academia Aesthetic",
-      "key": "academia",
-      "fullOutfitLabel": "Academia Aesthetic",
+      "label": "Academia",
       "icon": "📚",
       "options": {
         EditCategory.hair: 8,

@@ -379,20 +379,28 @@ class _FavoriteCard extends StatelessWidget {
       onLongPress: onLongPress,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? const Color(0xFFe94560) : Colors.transparent,
-            width: isSelected ? 3 : 0,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
+        decoration: isSelected
+            ? BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFe94560), width: 3),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              )
+            : BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(isSelected ? 17 : 20),
           child: Stack(
@@ -416,11 +424,15 @@ class _FavoriteCard extends StatelessWidget {
                     );
                   },
                 )
-              else if (favorite.imageBytes != null)
+              else if (favorite.imageBytes != null && favorite.imageBytes!.isNotEmpty)
                 Image.memory(
                   favorite.imageBytes!,
                   fit: BoxFit.cover,
                   gaplessPlayback: true,
+                  errorBuilder: (ctx, err, stack) => Container(
+                    color: Colors.grey[900],
+                    child: const Icon(Icons.broken_image, color: Colors.white24),
+                  ),
                 )
               else
                 Container(
@@ -598,10 +610,11 @@ class _FavoritesGalleryViewState extends State<_FavoritesGalleryView> {
                             fit: BoxFit.contain,
                             errorBuilder: (ctx, err, stack) => const Icon(Icons.broken_image, color: Colors.white54, size: 64),
                           )
-                        : widget.favorites[index].imageBytes != null
+                        : (widget.favorites[index].imageBytes != null && widget.favorites[index].imageBytes!.isNotEmpty)
                             ? Image.memory(
                                 widget.favorites[index].imageBytes!,
                                 fit: BoxFit.contain,
+                                errorBuilder: (ctx, err, stack) => const Icon(Icons.broken_image, color: Colors.white54, size: 64),
                               )
                             : const SizedBox.shrink(),
                   ),

@@ -11,8 +11,7 @@ Soft cinematic lighting, smooth materials, expressive eyes.
 Preserve pose, proportions, outfit, and framing.
 Do not crop. Do not change framing.
 ''',
-    assetPath: 'images/Premium page thumbnails/Pixar.png',
-    localAssetPath: 'assets/images/Pixar_style_3d_character_animation_thumbnail_null_1767430758269.jpg',
+    assetPath: 'assets/images/Pixar_style_3d_character_cute_null_1766294294868.jpg',
     variants: const [
       ThemeVariant(id: 'soft', label: 'Soft', prompt: 'Gentle lighting, warm softness.'),
       ThemeVariant(id: 'hero', label: 'Hero', prompt: 'Cinematic contrast, heroic lighting.'),
@@ -30,8 +29,7 @@ High-quality anime-style character illustration.
 Clean linework, expressive face, stylized shading.
 Preserve full-body proportions, pose, and framing.
 ''',
-    assetPath: 'images/Premium page thumbnails/Anime.png',
-    localAssetPath: 'assets/images/Anime_style_character_illustration_thumbnail_null_1767430759094.jpg',
+    assetPath: 'assets/images/Anime_character_portrait_vibrant_null_1766294295560.jpg',
     variants: const [
       ThemeVariant(id: 'clean', label: 'Clean', prompt: 'Modern clean anime style.'),
       ThemeVariant(id: 'ghibli', label: 'Ghibli', prompt: 'Soft storybook warmth, ghibli-inspired.'),
@@ -49,8 +47,7 @@ Comic-book style illustration.
 Bold outlines, graphic shading, dramatic lighting.
 Full body visible, stable framing.
 ''',
-    assetPath: 'images/Premium page thumbnails/Comic.png',
-    localAssetPath: 'assets/images/Comic_book_graphic_novel_illustration_thumbnail_null_1767430759573.jpg',
+    assetPath: 'assets/images/Comic_book_character_graphic_novel_null_1766294296023.jpg',
     variants: const [
       ThemeVariant(id: 'western', label: 'Western', prompt: 'Classic Western comic rendering.'),
       ThemeVariant(id: 'manga', label: 'Manga', prompt: 'Manga-inspired comic ink shading.'),
@@ -68,8 +65,7 @@ Cinematic superhero character.
 Powerful stance, dramatic lighting, detailed costume.
 Full body preserved, clean silhouette.
 ''',
-    assetPath: 'images/Premium page thumbnails/Super_Hero.png',
-    localAssetPath: 'assets/images/Superhero_character_cinematic_portrait_thumbnail_null_1767430760282.jpg',
+    assetPath: 'assets/images/Superhero_character_dramatic_lighting_null_1766294296651.jpg',
     variants: const [
       ThemeVariant(id: 'classic', label: 'Classic', prompt: 'Classic heroic vibe, clean costume lines.'),
       ThemeVariant(id: 'dark', label: 'Dark', prompt: 'Moody vigilante, darker palette and lighting.'),
@@ -87,8 +83,7 @@ High-fashion editorial character.
 Premium fabrics, studio lighting, magazine composition.
 Full body visible, runway-ready.
 ''',
-    assetPath: 'images/Premium page Fashion.png',
-    localAssetPath: 'assets/images/High_fashion_editorial_runway_model_thumbnail_null_1767430760949.jpg',
+    assetPath: 'assets/images/Fashion_model_editorial_portrait_null_1766294297711.jpg',
     variants: const [
       ThemeVariant(id: 'runway', label: 'Runway', prompt: 'Runway editorial styling, bold fashion.'),
       ThemeVariant(id: 'street', label: 'Streetwear', prompt: 'Urban streetwear styling, modern vibe.'),
@@ -106,8 +101,7 @@ Fantasy character design.
 Mystical atmosphere, elegant costume details.
 Full body preserved, storybook realism.
 ''',
-    assetPath: 'images/Premium page thumbnails/Fantasy.png',
-    localAssetPath: 'assets/images/Fantasy_magical_character_landscape_thumbnail_null_1767430761693.jpg',
+    assetPath: 'assets/images/Fantasy_elf_character_portrait_null_1766294298256.jpg',
     variants: const [
       ThemeVariant(id: 'elf', label: 'Elf/Mage', prompt: 'Mystical mage aesthetics, subtle magic glow.'),
       ThemeVariant(id: 'royal', label: 'Royal', prompt: 'Royal fantasy elegance, ornate fabrics.'),
@@ -125,8 +119,7 @@ Science fiction character.
 Futuristic materials, cinematic sci-fi lighting.
 Full body preserved, clean silhouette.
 ''',
-    assetPath: 'images/Premium page thumbnails/SciFi.png',
-    localAssetPath: 'assets/images/Sci-fi_futuristic_character_portrait_thumbnail_null_1767430762305.jpg',
+    assetPath: 'assets/images/Cyberpunk_sci-fi_character_portrait_null_1766294299207.jpg',
     variants: const [
       ThemeVariant(id: 'cyberpunk', label: 'Cyberpunk', prompt: 'Neon cyberpunk glow, urban future.'),
       ThemeVariant(id: 'space', label: 'Space', prompt: 'Space explorer suit, high-tech realism.'),
@@ -144,8 +137,7 @@ Ultra-realistic enhanced character.
 Cinematic lighting, premium realism.
 Preserve natural human proportions and framing.
 ''',
-    assetPath: 'images/Premium page thumbnails/Realistic.png',
-    localAssetPath: 'assets/images/Realistic_human_portrait_photography_thumbnail_null_1767430763061.jpg',
+    assetPath: 'assets/images/Realistic_human_portrait_detailed_null_1766294299954.jpg',
     variants: const [
       ThemeVariant(id: 'studio', label: 'Studio', prompt: 'Professional studio realism.'),
       ThemeVariant(id: 'cinema', label: 'Cinematic', prompt: 'Cinematic realism tone, film lighting.'),
@@ -164,8 +156,7 @@ Premium cinematic character render.
 Film-grade lighting, high-end lens look, ultra-polished materials.
 Preserve pose, proportions, outfit, and framing.
 ''',
-    assetPath: 'images/Premium page thumbnails/Lux_Cinematic.png',
-    localAssetPath: 'assets/images/Lux_cinematic_movie_style_portrait_thumbnail_null_1767430764387.jpg',
+    assetPath: 'assets/images/Cinematic_film_movie_character_portrait_null_1766294300701.jpg',
     variants: const [
       ThemeVariant(id: 'gold', label: 'Gold', prompt: 'Golden-hour cinematic lighting, soft glow.'),
       ThemeVariant(id: 'neon', label: 'Neon', prompt: 'Neon city cinematic lighting, glossy reflections.'),
@@ -184,8 +175,7 @@ Collectible toy deluxe render.
 Premium plastics, subtle micro-textures, studio product lighting.
 Preserve framing and silhouette.
 ''',
-    assetPath: 'images/Premium page thumbnails/Toy_Delux.png',
-    localAssetPath: 'assets/images/Toy_delux_3d_character_render_thumbnail_null_1767430763548.jpg',
+    assetPath: 'assets/images/3d_vinyl_toy_character_collectible_null_1766294301315.jpg',
     variants: const [
       ThemeVariant(id: 'matte', label: 'Matte', prompt: 'Matte deluxe finish, soft reflections.'),
       ThemeVariant(id: 'gloss', label: 'Gloss', prompt: 'High-gloss premium reflections, showroom look.'),

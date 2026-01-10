@@ -161,18 +161,26 @@ widget.onSelect(bytes);
 onLongPress: () => _toggleSelection(bytes),
 child: AnimatedContainer(
 duration: const Duration(milliseconds: 200),
-decoration: BoxDecoration(
-borderRadius: SofiHistorySheet._radius16,
-border: isSelected
-? Border.all(color: Colors.purple, width: 3)
-: null,
-),
+decoration: isSelected
+    ? BoxDecoration(
+        borderRadius: SofiHistorySheet._radius16,
+        border: Border.all(color: Colors.purple, width: 3),
+      )
+    : const BoxDecoration(
+        borderRadius: SofiHistorySheet._radius16,
+      ),
 child: ClipRRect(
 borderRadius: SofiHistorySheet._radius14,
-child: Image.memory(
-bytes,
-fit: BoxFit.cover,
-),
+child: bytes.isEmpty
+    ? Container(color: Colors.grey[300], child: const Icon(Icons.broken_image, color: Colors.grey))
+    : Image.memory(
+        bytes,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: Colors.grey[300],
+          child: const Icon(Icons.broken_image, color: Colors.grey),
+        ),
+      ),
 ),
 ),
 ),

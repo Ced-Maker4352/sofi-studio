@@ -59,8 +59,6 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
   
   final SofiStudioController controller = SofiStudioController();
   bool _isGenerating = false;
-  // If we detect ModelsLab credit exhaustion, reflect it in UI and gate the button.
-  bool _outOfCredits = false;
   
   // Animation for Generate button
   AnimationController? _generateBtnController;
@@ -119,9 +117,6 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
   // Initial loading state - true until history is loaded
   bool _isInitialLoading = true;
 
-  // Platform hint to tweak shadows/effects for iOS Web (reduce heavy blurs)
-  bool get _isIOSWeb => kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
-
   final Map<EditCategory, int?> selectedOptions = {
     EditCategory.hair: null,
     EditCategory.top: null,
@@ -175,11 +170,11 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
     });
 
     // Debounced prompt listener - only rebuild when text changes significantly
-    String lastPrompt = '';
+    String _lastPrompt = '';
     promptController.addListener(() {
       final newText = promptController.text;
-      if (newText != lastPrompt) {
-        lastPrompt = newText;
+      if (newText != _lastPrompt) {
+        _lastPrompt = newText;
         if (mounted) setState(() {});
       }
     });
@@ -330,12 +325,6 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
       if (!mounted) return;
       unawaited(StorageService.instance.precacheDrawerUrls().catchError((e, st) {
         debugPrint('[SofiStudio] URL precache error: $e\n$st');
-      }).then((_) async {
-        // Optional: run a quiet verification pass to ensure thumbs ↔ prompts and dolls ↔ stages map correctly
-        await Future<void>.delayed(const Duration(seconds: 1));
-        unawaited(StorageService.instance.verifyAllAssetMappings().catchError((e, st) {
-          debugPrint('[SofiStudio] Asset verify error: $e\n$st');
-        }));
       }));
     });
     
@@ -480,16 +469,16 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
     
     if (isStorage) {
       try {
-        // Use safe URL resolver with fallbacks for legacy paths
-        final url = await StorageService.instance.getDownloadUrlSafe(path);
-        if (url == null) {
-          throw Exception('No download URL for $path');
-        }
+        final url = await StorageService.instance.getDownloadUrl(path);
         debugPrint('[LoadDoll] Got download URL: ${url.substring(0, 50)}...');
-        final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
+        
+        final response = await http.get(Uri.parse(url))
+            .timeout(const Duration(seconds: 10));
+        
         if (response.statusCode != 200) {
           throw Exception('HTTP ${response.statusCode}');
         }
+        
         debugPrint('[LoadDoll] Downloaded ${response.bodyBytes.length} bytes');
         return response.bodyBytes;
       } catch (e) {
@@ -541,35 +530,17 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
       
       // REMOTE DEBUG LOG: Category selection
       unawaited(RemoteDebugLogger.instance.logCategorySelection(category.name, option));
-
-      // Enforce single-selection per category except Accessories (can stack)
-      final newPrompt = _getPrompt(category, option);
-
-      // If this category is NOT accessories, remove any previous fragment for this category
-      if (category != EditCategory.accessories) {
-        final previous = selectedOptions[category];
-        if (previous != null) {
-          try {
-            final prevPrompt = _getPrompt(category, previous);
-            final cleaned = _removeFragmentSafe(promptController.text, prevPrompt);
-            if (cleaned != promptController.text) {
-              promptController.text = cleaned;
-            }
-          } catch (e) {
-            debugPrint('[SofiStudio] Failed to remove previous fragment for ${category.name}: $e');
-          }
-        }
-      }
-
-      // Update current selection (single int per category)
+      
       selectedOptions[category] = option;
-
-      // Append or set new fragment
+      
+      // Append the new selection to the existing text ("Stacking")
+      final newPrompt = _getPrompt(category, option);
       final currentText = promptController.text.trim();
+      
       if (currentText.isEmpty) {
         promptController.text = newPrompt;
       } else {
-        // Avoid duplicate immediate re-append if already present at tail
+        // Avoid appending if it's already at the end to prevent double-clicks
         if (!currentText.endsWith(newPrompt)) {
           promptController.text = '$currentText, $newPrompt';
         }
@@ -589,65 +560,6 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
       });
     }
     // Drawer stays open for multiple selections ("Netflix style")
-  }
-
-  /// Safe helper that removes a fragment from a comma-separated prompt string.
-  /// Handles begin/middle/end positions and cleans up extra commas/spaces.
-  String _removeFragmentSafe(String text, String fragment) {
-    var result = text;
-    String esc(String input) => input.replaceAllMapped(
-      RegExp(r'[\\.\^\$\|\?\*\+\(\)\{\}\[\]]'),
-      (m) => '\\${m[0]}',
-    );
-
-    final frag = esc(fragment.trim());
-    // Remove leading occurrence
-    result = result.replaceFirst(RegExp('^$frag(\\s*,\\s*)?'), '');
-    // Remove middle/end occurrences
-    result = result.replaceAll(RegExp('(,\\s*)$frag'), '');
-    // Normalize commas/spaces and strip stray leading/trailing commas
-    result = result.replaceAll(RegExp(r'\s+,\s+'), ', ');
-    result = result.replaceAll(RegExp(r'(^\s*,\s*|\s*,\s*$)'), '');
-    result = result.trim();
-    if (result.endsWith(',')) {
-      result = result.substring(0, result.length - 1).trim();
-    }
-    return result;
-  }
-
-  /// Remove a specific fragment from the free-form prompt text, handling
-  /// commas and whitespace gracefully regardless of position.
-  // ignore: unused_element
-  String _removePromptFragment(String text, String fragment) {
-    String result = text;
-
-    String esc(String input) => input.replaceAllMapped(
-      RegExp(r'[\\.\^\$\|\?\*\+\(\)\{\}\[\]]'),
-      (m) => '\\${m[0]}',
-    );
-
-    final frag = esc(fragment.trim());
-
-    // 1) Remove leading: "fragment" or "fragment, "
-    result = result.replaceFirst(RegExp('^$frag(\\s*,\\s*)?'), '');
-
-    // 2) Remove middle/end occurrences: ", fragment"
-    result = result.replaceAll(RegExp('(,\\s*)$frag'), '');
-
-    // 3) Normalize stray commas and spaces
-    result = result.replaceAll(RegExp('\\s+,\\s+'), ', ');
-    /*
-    result = result.replaceAll(RegExp('(^\\s*,\\s*|\\s*,\\s*[0$])'), '');
-    */
-    // Safe replacement for trailing/leading commas
-    result = result.replaceAll(RegExp(r'(^\s*,\s*|\s*,\s*$)'), '');
-    // Fallback trim
-    result = result.trim();
-    // Remove trailing comma if any after trims
-    if (result.endsWith(',')) {
-      result = result.substring(0, result.length - 1).trim();
-    }
-    return result;
   }
 
   String _getPrompt(EditCategory category, int option) {
@@ -703,23 +615,6 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
     
     if (_isGenerating || controller.currentDoll == null) {
       debugPrint('\u26a0\ufe0f [Generation] Blocked: isGenerating=$_isGenerating, currentDoll=${controller.currentDoll}');
-      return;
-    }
-
-    // If we've already detected an out-of-credits state, nudge to paywall instead.
-    if (_outOfCredits) {
-      debugPrint('⛔ [Generation] Blocked: out of credits');
-      if (!mounted) return;
-      final didSubscribe = await PaywallSheet.show(
-        context,
-        message: "You're out of generation credits. Start your trial or add credits to continue.",
-      );
-      if (didSubscribe == true) {
-        setState(() => _outOfCredits = false);
-        _showSnack('Thanks! Try again.');
-      } else {
-        _showSnack('Out of credits. Upgrade to continue.');
-      }
       return;
     }
     
@@ -889,31 +784,9 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
         debugPrint('[VoiceCoach] onGenerationError error: $ve');
       }));
       
-      // Special handling: Out of credits
-      final msg = e.toString().toLowerCase();
-      if (msg.contains('out of credits')) {
-        debugPrint('💳 [Generation] Detected out-of-credits condition');
-        if (mounted) {
-          setState(() => _outOfCredits = true);
-        }
-        // Offer upgrade/paywall immediately
-        if (mounted) {
-          final didSubscribe = await PaywallSheet.show(
-            context,
-            message: "You're out of generation credits. Start your trial or add credits to continue.",
-          );
-          if (didSubscribe == true && mounted) {
-            setState(() => _outOfCredits = false);
-            _showSnack('Thanks! Try again.');
-          } else if (mounted) {
-            _showSnack('Out of credits. Open Premium to continue.');
-          }
-        }
-      } else {
-        // Generic error fallback
-        if (mounted) {
-          _showSnack('Generation failed. Please try again.');
-        }
+      // Show user-friendly error
+      if (mounted) {
+        _showSnack('Generation failed. Please try again.');
       }
     } finally {
       // ALWAYS reset state
@@ -1112,21 +985,13 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
       final int maxCropX = (w * maxBorderFractionPerSide).floor();
 
       // Scan top
-      while (top < bottom && (top - 0) < maxCropY && rowIsDark(top)) {
-        top++;
-      }
+      while (top < bottom && (top - 0) < maxCropY && rowIsDark(top)) top++;
       // Scan bottom
-      while (bottom > top && (h - 1 - bottom) < maxCropY && rowIsDark(bottom)) {
-        bottom--;
-      }
+      while (bottom > top && (h - 1 - bottom) < maxCropY && rowIsDark(bottom)) bottom--;
       // Scan left
-      while (left < right && (left - 0) < maxCropX && colIsDark(left, top, bottom)) {
-        left++;
-      }
+      while (left < right && (left - 0) < maxCropX && colIsDark(left, top, bottom)) left++;
       // Scan right
-      while (right > left && (w - 1 - right) < maxCropX && colIsDark(right, top, bottom)) {
-        right--;
-      }
+      while (right > left && (w - 1 - right) < maxCropX && colIsDark(right, top, bottom)) right--;
 
       final int newW = (right - left + 1).clamp(1, w);
       final int newH = (bottom - top + 1).clamp(1, h);
@@ -1227,9 +1092,9 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
           debugPrint('❌ shareXFiles failed: $e');
           // Try text-only share as fallback
           try {
-              await SharePlus.instance.share(
+            await SharePlus.instance.share(
               ShareParams(
-                  text: 'Check out my creation made with Sofi Saint!',
+                text: 'Check out my creation made with Sofi Saint! 🎨✨',
                 subject: 'Sofi Saint Creation',
               ),
             );
@@ -1245,9 +1110,9 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
         }
       } else {
         // No image yet: share text only
-              await SharePlus.instance.share(
+        await SharePlus.instance.share(
           ShareParams(
-                  text: 'Check out Sofi Saint - AI Fashion Studio!',
+            text: 'Check out Sofi Saint - AI Fashion Studio! 🎨✨',
             subject: 'Sofi Saint',
           ),
         );
@@ -1263,7 +1128,6 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
       // Check premium status and show paywall if needed
       final premiumService = PremiumService();
       await premiumService.initialize();
-      if (!context.mounted) return;
       
       if (!premiumService.isPremium) {
         // Require subscription before entering the Premium Studio
@@ -1273,7 +1137,6 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
         );
         // Re-check state after sheet closes
         await premiumService.initialize();
-        if (!context.mounted) return;
         if (didSubscribe != true || !premiumService.isPremium) {
           _showSnack('Premium is required to continue.');
           return;
@@ -1283,95 +1146,73 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
       final picker = ImagePicker();
 
       // Show option dialog
-      if (!context.mounted) return;
       final selection = await showModalBottomSheet<int>(
         context: context,
         backgroundColor: Colors.transparent,
-        // Allow the sheet to grow with content and avoid tight half-height constraints.
-        isScrollControlled: true,
         builder: (ctx) => Theme(
           data: ThemeData.light(),
-          child: SafeArea(
-            top: false,
-            child: FractionallySizedBox(
-              heightFactor: 0.9, // allow up to 90% screen height
-              child: Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: _radiusTop24,
-                ),
-                padding: EdgeInsets.only(
-                  left: 20,
-                  right: 20,
-                  top: 20,
-                  bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: _radiusTop24,
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    const Center(
-                      child: Text(
-                        'Select Identity Source',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1A1A1A),
-                        ),
+                  ),
+                  const Center(
+                    child: Text(
+                      'Select Identity Source',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1A1A1A),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    // Make inner content scroll when space is tight
-                    Expanded(
-                      child: SingleChildScrollView(
-                        physics: const BouncingScrollPhysics(),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSheetOption(
-                              icon: Icons.camera_alt_outlined,
-                              label: 'Take Live Picture',
-                              onTap: () => Navigator.pop(ctx, 0),
-                            ),
-                            const SizedBox(height: 8),
-                            _buildSheetOption(
-                              icon: Icons.photo_library_outlined,
-                              label: 'Choose from Gallery',
-                              onTap: () => Navigator.pop(ctx, 1),
-                            ),
-                            const SizedBox(height: 8),
-                            _buildSheetOption(
-                              icon: Icons.brush_outlined,
-                              label: 'Use Current Canvas',
-                              onTap: () => Navigator.pop(ctx, 2),
-                            ),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 12),
-                              child: Divider(color: Colors.black12),
-                            ),
-                            _buildSheetOption(
-                              icon: Icons.arrow_forward_rounded,
-                              label: 'Go Directly to Premium',
-                              subtitle: 'Browse styles, upload later',
-                              isPrimary: true,
-                              onTap: () => Navigator.pop(ctx, 3),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildSheetOption(
+                    icon: Icons.camera_alt_outlined,
+                    label: '📷  Take Live Picture',
+                    onTap: () => Navigator.pop(ctx, 0),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildSheetOption(
+                    icon: Icons.photo_library_outlined,
+                    label: '🖼️  Choose from Gallery',
+                    onTap: () => Navigator.pop(ctx, 1),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildSheetOption(
+                    icon: Icons.brush_outlined,
+                    label: '🎨  Use Current Canvas',
+                    onTap: () => Navigator.pop(ctx, 2),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Divider(color: Colors.black12),
+                  ),
+                  _buildSheetOption(
+                    icon: Icons.arrow_forward_rounded,
+                    label: '✨  Go Directly to Premium',
+                    subtitle: 'Browse styles, upload later',
+                    isPrimary: true,
+                    onTap: () => Navigator.pop(ctx, 3),
+                  ),
+                ],
               ),
             ),
           ),
@@ -1449,7 +1290,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
       // If we got a prompt back, store it as the active base style
       if (returnedPrompt != null && returnedPrompt.isNotEmpty) {
         setState(() => _activeBaseStylePrompt = returnedPrompt);
-          debugPrint('Activated premium style prompt override');
+        debugPrint('✅ Activated premium style prompt override');
       }
     } catch (e) {
       debugPrint('❌ Failed to open Premium Studio: $e');
@@ -1557,7 +1398,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
           debugPrint('\u2705 [Speech] listen() called successfully');
         } catch (listenEx) {
           debugPrint('\ud83d\uded1 [Speech] listen() threw: $listenEx');
-          rethrow;
+          throw listenEx;
         }
       } else {
         debugPrint('[Speech] Stopping...');
@@ -1653,7 +1494,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
                   Positioned(
                     right: 16,
                     bottom: 130, // Lifted up to avoid touching footer
-                    child: floatingHistoryCluster(
+                    child: _FloatingHistoryCluster(
                       canUndo: _history.length > 1,
                       canRedo: _redoStack.isNotEmpty,
                       hasHistory: _history.isNotEmpty,
@@ -1687,15 +1528,6 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
                       ),
                     ),
                   
-                  // Floating Prompt Preview (above footer)
-                  if (promptController.text.isNotEmpty && !_isGenerating && !controller.isDrawerOpen)
-                    Positioned(
-                      left: 24,
-                      right: 24,
-                      bottom: 100,
-                      child: _buildPromptPreview(),
-                    ),
-
                   // Floating "Giant Pill" Footer
                   Positioned(
                     left: 0,
@@ -1856,12 +1688,17 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
             }, // Connected to open options
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.white,
-                borderRadius: _radius20,
-                boxShadow: isDark ? null : SofiStudioTheme.softShadow,
-                border: isDark ? Border.all(color: Colors.white24) : null,
-              ),
+              decoration: isDark
+                  ? BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      borderRadius: _radius20,
+                      border: Border.all(color: Colors.white24),
+                    )
+                  : BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: _radius20,
+                      boxShadow: SofiStudioTheme.softShadow,
+                    ),
               child: Text(
                 'Design Studio',
                 style: GoogleFonts.poppins(
@@ -1921,7 +1758,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
 
   Widget _stage(SofiDoll? current) {
     // Increase edge bleed slightly to be safe
-    const double edgeBleed = 1.05; 
+    const double _edgeBleed = 1.05; 
     final theme = ThemeManager.instance.current;
     
     // While initial loading, show a clean loading state instead of default doll
@@ -1937,11 +1774,15 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
       );
     }
     
-    final Widget image = generatedImageBytes != null
+    final Widget image = (generatedImageBytes != null && generatedImageBytes!.isNotEmpty)
         ? Image.memory(
             generatedImageBytes!,
             fit: BoxFit.cover,
             filterQuality: FilterQuality.high,
+            errorBuilder: (ctx, err, stack) => Container(
+              color: theme.backgroundColor,
+              child: const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
+            ),
           )
         : (current != null
             ? (current.isStoragePath
@@ -1961,7 +1802,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
           padding: EdgeInsets.zero,
           child: ClipRect(
             child: Transform.scale(
-              scale: edgeBleed,
+              scale: _edgeBleed,
               alignment: Alignment.center,
               child: image,
             ),
@@ -1971,79 +1812,10 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
     );
   }
 
-  Widget _buildPromptPreview() {
-    final theme = ThemeManager.instance.current;
-    final bool isDark = theme.type == AppThemeType.black;
-    final text = promptController.text;
-    
-    return AnimatedOpacity(
-      duration: const Duration(milliseconds: 200),
-      opacity: text.isNotEmpty ? 1.0 : 0.0,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isDark 
-              ? Colors.black.withValues(alpha: 0.75) 
-              : Colors.white.withValues(alpha: 0.9),
-          borderRadius: _radius16,
-          border: Border.all(
-            color: isDark ? Colors.white24 : Colors.black12,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Icon(
-              _listening ? Icons.mic : Icons.format_quote,
-              size: 16,
-              color: _listening 
-                  ? theme.accentColor 
-                  : (isDark ? Colors.white54 : Colors.black38),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                text,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: isDark ? Colors.white : Colors.black87,
-                  fontStyle: _listening ? FontStyle.italic : FontStyle.normal,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            // Clear button
-            GestureDetector(
-              onTap: () {
-                promptController.clear();
-                setState(() {});
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: Icon(
-                  Icons.close,
-                  size: 18,
-                  color: isDark ? Colors.white38 : Colors.black38,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildFloatingFooter() {
     final theme = ThemeManager.instance.current;
     final bool isDark = theme.type == AppThemeType.black;
-    final bool isIOSWeb = kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    final bool _isIOSWeb = kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
     
     return SafeArea(
       top: false,
@@ -2053,7 +1825,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
           height: 64,
           decoration: BoxDecoration(
             borderRadius: _radius100,
-            boxShadow: isIOSWeb
+            boxShadow: _isIOSWeb
                 ? null
                 : const [
                     BoxShadow(
@@ -2066,7 +1838,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
           child: ClipRRect(
             borderRadius: _radius100,
             child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: isIOSWeb ? 5 : 10, sigmaY: isIOSWeb ? 5 : 10),
+              filter: ui.ImageFilter.blur(sigmaX: _isIOSWeb ? 5 : 10, sigmaY: _isIOSWeb ? 5 : 10),
               child: Container(
                 padding: const EdgeInsets.only(left: 8, right: 8),
                 color: isDark 
@@ -2116,7 +1888,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
                       onPressed: () async {
                         await AudioService.instance.playClick();
                         // Open small settings panel for Voice Coach
-                        if (!mounted) return;
+                        // ignore: use_build_context_synchronously
                         await showModalBottomSheet(
                           context: context,
                           backgroundColor: Colors.transparent,
@@ -2135,7 +1907,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
                       color: isDark ? Colors.white70 : Colors.black54,
                       onPressed: () async {
                         await AudioService.instance.playClick();
-                        if (!mounted) return;
+                        // ignore: use_build_context_synchronously
                         await showModalBottomSheet(
                           context: context,
                           backgroundColor: Colors.transparent,
@@ -2163,27 +1935,14 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
 
                     const SizedBox(width: 4),
 
-                    // Generate / Get Credits Button with pulse animation
+                    // Generate Button with pulse animation
                     ScaleTransition(
                       scale: _isGenerating ? const AlwaysStoppedAnimation(1.0) : (_generateBtnScale ?? const AlwaysStoppedAnimation(1.0)),
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          onTap: _isGenerating ? null : () async {
+                          onTap: _isGenerating ? null : () {
                             HapticFeedback.mediumImpact();
-                            if (_outOfCredits) {
-                              // Open paywall directly when credits are exhausted
-                              if (!context.mounted) return;
-                              final didSubscribe = await PaywallSheet.show(
-                                context,
-                                message: "You're out of generation credits. Start your trial or add credits to continue.",
-                              );
-                              if (didSubscribe == true && mounted) {
-                                setState(() => _outOfCredits = false);
-                                _showSnack('Thanks! Try again.');
-                              }
-                              return;
-                            }
                             _onGeneratePressed();
                           },
                           borderRadius: _radius24,
@@ -2217,18 +1976,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
                                     width: 16, height: 16,
                                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                   )
-                                else if (_outOfCredits) ...[
-                                  const Icon(Icons.lock, size: 16, color: Colors.white),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    'Get Credits',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ] else ...[
+                                else ...[
                                   const Icon(Icons.auto_awesome, size: 16, color: Colors.white),
                                   const SizedBox(width: 6),
                                   Text(
@@ -2258,7 +2006,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
   }
 
   // Floating cluster for undo/redo/history, positioned over the stage
-  Widget floatingHistoryCluster({
+  Widget _FloatingHistoryCluster({
     required bool canUndo,
     required bool canRedo,
     required bool hasHistory,
@@ -2266,18 +2014,23 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
     required VoidCallback onRedo,
     required VoidCallback onOpenHistory,
   }) {
-    final bool isIOSWeb = kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    final bool _isIOSWeb = kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
     return ClipRRect(
       borderRadius: _radius24,
       child: BackdropFilter(
         filter: ui.ImageFilter.blur(sigmaX: 14, sigmaY: 14),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.10),
-            borderRadius: _radius24,
-            border: isIOSWeb ? null : Border.all(color: Colors.black.withValues(alpha: 0.20), width: 1),
-          ),
+          decoration: _isIOSWeb
+              ? BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.10),
+                  borderRadius: _radius24,
+                )
+              : BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.10),
+                  borderRadius: _radius24,
+                  border: Border.all(color: Colors.black.withValues(alpha: 0.20), width: 1),
+                ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -2326,59 +2079,62 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
         child: Container(
           color: Colors.black.withValues(alpha: 0.5),
           child: SafeArea(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Welcome to Sofi Studio!',
-                    style: GoogleFonts.poppins(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Title
+                Text(
+                  'Welcome to Sofi Studio!',
+                  style: GoogleFonts.poppins(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
-                  const SizedBox(height: 24),
-                  _HintButton(
-                    icon: Icons.tune,
-                    label: 'Tap Design Studio',
-                    subtitle: 'to start styling',
-                    onTap: () {
-                      _dismissCanvasHint();
-                      controller.openDrawer();
-                    },
+                ),
+                const SizedBox(height: 24),
+                
+                // Hint buttons
+                _HintButton(
+                  icon: Icons.tune,
+                  label: 'Tap Design Studio',
+                  subtitle: 'to start styling',
+                  onTap: () {
+                    _dismissCanvasHint();
+                    controller.openDrawer();
+                  },
+                ),
+                const SizedBox(height: 12),
+                _HintButton(
+                  icon: Icons.history_rounded,
+                  label: 'Tap History',
+                  subtitle: 'to view your creations',
+                  onTap: () {
+                    _dismissCanvasHint();
+                    _openHistory();
+                  },
+                ),
+                const SizedBox(height: 12),
+                _HintButton(
+                  icon: Icons.favorite_rounded,
+                  label: 'Tap Favorites',
+                  subtitle: 'to save & reuse outfits',
+                  onTap: () {
+                    _dismissCanvasHint();
+                    controller.openDrawer();
+                  },
+                ),
+                
+                const SizedBox(height: 32),
+                
+                // Dismiss hint
+                Text(
+                  'Tap anywhere to dismiss',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    color: Colors.white70,
                   ),
-                  const SizedBox(height: 12),
-                  _HintButton(
-                    icon: Icons.history_rounded,
-                    label: 'Tap History',
-                    subtitle: 'to view your creations',
-                    onTap: () {
-                      _dismissCanvasHint();
-                      _openHistory();
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _HintButton(
-                    icon: Icons.favorite_rounded,
-                    label: 'Tap Favorites',
-                    subtitle: 'to save & reuse outfits',
-                    onTap: () {
-                      _dismissCanvasHint();
-                      controller.openDrawer();
-                    },
-                  ),
-                  const SizedBox(height: 32),
-                  Text(
-                    'Tap anywhere to dismiss',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -2489,7 +2245,7 @@ class _SofiStudioPageState extends State<SofiStudioPage> with TickerProviderStat
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        'Unlock More Styles!',
+                        'Unlock More Styles! ✨',
                         style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -2685,13 +2441,16 @@ class _FrostyCircleButton extends StatelessWidget {
           child: Container(
             width: 44,
             height: 44,
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.10),
-              borderRadius: _SofiStudioPageState._radius24,
-              border: (kIsWeb && defaultTargetPlatform == TargetPlatform.iOS)
-                  ? null
-                  : Border.all(color: Colors.black.withValues(alpha: 0.20), width: 1),
-            ),
+            decoration: (kIsWeb && defaultTargetPlatform == TargetPlatform.iOS)
+                ? BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.10),
+                    borderRadius: _SofiStudioPageState._radius24,
+                  )
+                : BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.10),
+                    borderRadius: _SofiStudioPageState._radius24,
+                    border: Border.all(color: Colors.black.withValues(alpha: 0.20), width: 1),
+                  ),
             child: IconButton(
               icon: Icon(icon, size: 20, color: Colors.black87),
               onPressed: () async {
@@ -2740,8 +2499,14 @@ class _FirebaseStageImageState extends State<_FirebaseStageImage> {
     try {
       final url = await StorageService.instance.getDownloadUrl(widget.path);
       if (mounted) setState(() => _url = url);
-    } catch (e) {
-      debugPrint('Failed to load stage image: $e');
+    } catch (e, stackTrace) {
+      debugPrint('Failed to load stage image from Firebase Storage: $e');
+      debugPrint('Path: ${widget.path}');
+      RemoteDebugLogger.instance.logError(
+        'Failed to load Firebase Storage image: ${widget.path}',
+        e,
+        stackTrace,
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -2750,15 +2515,67 @@ class _FirebaseStageImageState extends State<_FirebaseStageImage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return Container(
+        color: ThemeManager.instance.current.backgroundColor,
+        child: const Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white54),
+          ),
+        ),
+      );
     }
     if (_url == null) {
-      return const Center(child: Icon(Icons.broken_image, size: 48));
+      return Container(
+        color: ThemeManager.instance.current.backgroundColor,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.cloud_off_outlined,
+                size: 48,
+                color: Colors.white.withValues(alpha: 0.5),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Premium content unavailable',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.7),
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Upload required files to Firebase Storage',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.5),
+                  fontSize: 12,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
     }
     return Image.network(
       _url!,
       fit: BoxFit.cover,
       filterQuality: FilterQuality.high,
+      errorBuilder: (context, error, stackTrace) {
+        debugPrint('Image.network error: $error');
+        return Container(
+          color: ThemeManager.instance.current.backgroundColor,
+          child: Center(
+            child: Icon(
+              Icons.broken_image_outlined,
+              size: 48,
+              color: Colors.white.withValues(alpha: 0.5),
+            ),
+          ),
+        );
+      },
     );
   }
 }

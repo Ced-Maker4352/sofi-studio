@@ -39,6 +39,7 @@ class _GenerationLoaderState extends State<GenerationLoader> with TickerProvider
   // Combine sources into a unified list (NOT late final - can be rebuilt)
   List<_LoaderItem> _items = [];
   bool _itemsPrepared = false;
+  bool _resolvingPremium = false;
   
   // Status messages that cycle
   final List<String> _statusMessages = [
@@ -57,6 +58,8 @@ class _GenerationLoaderState extends State<GenerationLoader> with TickerProvider
   void initState() {
     super.initState();
     _prepareItems();
+    // Resolve premium paths to Firebase URLs asynchronously to avoid asset crashes
+    _resolvePremiumImages();
     
     // Pulse animation for the spinner
     _pulseController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500))..repeat(reverse: true);
@@ -93,22 +96,60 @@ class _GenerationLoaderState extends State<GenerationLoader> with TickerProvider
       tempList.add(_LoaderItem(bytes: bytes));
     }
     
-    // 2. Supplement with premium assets if history is low
-    // These are Firebase Storage paths, not local assets
-    if (tempList.length < 10) {
-      int premiumIndex = 0;
-      while (tempList.length < 10 && widget.premiumAssetPaths.isNotEmpty) {
-        tempList.add(_LoaderItem(
-          assetPath: widget.premiumAssetPaths[premiumIndex % widget.premiumAssetPaths.length],
-          isStoragePath: true,
-        ));
-        premiumIndex++;
-      }
-    }
+    // We no longer add raw asset paths here to avoid crashing when assets are missing.
+    // Premium images will be resolved to Firebase URLs asynchronously in _resolvePremiumImages().
     
     // iOS Web memory guard: keep the loader very light (max 6 items)
     final maxItems = _isIOSWeb ? 6 : tempList.length;
     _items = tempList.take(maxItems).toList();
+  }
+
+  /// Resolve premium image paths (which are Firebase Storage paths) into public URLs.
+  /// Adds them to the loader items without throwing if files are missing.
+  Future<void> _resolvePremiumImages() async {
+    if (_resolvingPremium) return;
+    if (widget.premiumAssetPaths.isEmpty) return;
+    _resolvingPremium = true;
+
+    try {
+      // If we already have enough items from history, we can keep this light.
+      final desiredCount = _isIOSWeb ? 6 : 10;
+      if (_items.length >= desiredCount) return;
+
+      final remaining = desiredCount - _items.length;
+
+      // Resolve in small batches to avoid hammering the network
+      final paths = widget.premiumAssetPaths;
+      final urls = <String>[];
+
+      // Deduplicate paths to avoid repeated lookups
+      final uniquePaths = paths.toSet().toList();
+
+      for (final p in uniquePaths) {
+        try {
+          final url = await StorageService.instance.getDownloadUrlSafe(p);
+          if (url != null) urls.add(url);
+        } catch (_) {
+          // Swallow errors; we'll just skip missing items
+        }
+        // Stop once we have enough
+        if (urls.length >= remaining) break;
+      }
+
+      if (urls.isEmpty) return;
+
+      if (!mounted) return;
+      setState(() {
+        // Append as URL-based items; respect iOS Web cap
+        final added = urls.take(remaining).map((u) => _LoaderItem(url: u));
+        _items.addAll(added);
+        if (_isIOSWeb && _items.length > 6) {
+          _items = _items.take(6).toList();
+        }
+      });
+    } finally {
+      _resolvingPremium = false;
+    }
   }
 
   void _startAutoScroll() {
@@ -246,12 +287,16 @@ class _GenerationLoaderState extends State<GenerationLoader> with TickerProvider
           child: Container(
             key: ValueKey(_currentMessageIndex),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.15),
-              borderRadius: GenerationLoader._radius24,
-              // Disable borders in performance mode (iOS Web crash guard)
-              border: disableEffects ? null : Border.all(color: Colors.white.withValues(alpha: 0.2)),
-            ),
+            decoration: disableEffects
+                ? BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: GenerationLoader._radius24,
+                  )
+                : BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: GenerationLoader._radius24,
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                  ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -300,11 +345,28 @@ class _GenerationLoaderState extends State<GenerationLoader> with TickerProvider
           child: Stack(
             fit: StackFit.expand,
             children: [
-              item.bytes != null
-                  ? Image.memory(item.bytes!, fit: BoxFit.cover)
-                  : item.isStoragePath
-                      ? _StorageImage(item: item)
-                      : Image.asset(item.assetPath!, fit: BoxFit.cover),
+              if (item.bytes != null && item.bytes!.isNotEmpty)
+                Image.memory(
+                  item.bytes!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (ctx, err, stack) => Container(
+                    color: Colors.black12,
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.broken_image_outlined, color: Colors.black45),
+                  ),
+                )
+              else if (item.url != null && item.url!.isNotEmpty)
+                Image.network(
+                  item.url!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    color: Colors.black12,
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.broken_image_outlined, color: Colors.black45),
+                  ),
+                )
+              else
+                Container(color: Colors.black12),
               // Subtle shimmer overlay (disabled in performance mode)
               if (!disableEffects)
                 Positioned.fill(
@@ -332,93 +394,7 @@ class _GenerationLoaderState extends State<GenerationLoader> with TickerProvider
 
 class _LoaderItem {
   final Uint8List? bytes;
-  final String? assetPath;
-  final bool isStoragePath;
-  String? cachedUrl;
+  final String? url;
   
-  _LoaderItem({this.bytes, this.assetPath, this.isStoragePath = false});
-}
-
-/// Helper widget to load images from Firebase Storage for the loader
-class _StorageImage extends StatefulWidget {
-  final _LoaderItem item;
-
-  const _StorageImage({required this.item});
-
-  @override
-  State<_StorageImage> createState() => _StorageImageState();
-}
-
-class _StorageImageState extends State<_StorageImage> {
-  String? _url;
-  bool _loading = true;
-  bool _error = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUrl();
-  }
-
-  Future<void> _loadUrl() async {
-    // Use cached URL if available
-    if (widget.item.cachedUrl != null) {
-      if (mounted) {
-        setState(() {
-          _url = widget.item.cachedUrl;
-          _loading = false;
-        });
-      }
-      return;
-    }
-
-    try {
-      final url = await StorageService.instance.getDownloadUrl(widget.item.assetPath!);
-      widget.item.cachedUrl = url; // Cache for future use
-      if (mounted) {
-        setState(() {
-          _url = url;
-          _loading = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('[GenerationLoader] Failed to load storage image: $e');
-      if (mounted) {
-        setState(() {
-          _error = true;
-          _loading = false;
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_loading) {
-      return Container(
-        color: Colors.grey.shade200,
-        child: const Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
-      );
-    }
-    if (_error || _url == null) {
-      return Container(
-        color: Colors.grey.shade300,
-        child: const Center(child: Icon(Icons.broken_image, size: 24, color: Colors.grey)),
-      );
-    }
-    return Image.network(
-      _url!,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(
-        color: Colors.grey.shade300,
-        child: const Center(child: Icon(Icons.broken_image, size: 24, color: Colors.grey)),
-      ),
-    );
-  }
+  _LoaderItem({this.bytes, this.url});
 }

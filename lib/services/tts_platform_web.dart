@@ -2,15 +2,14 @@
 // Web implementation using the browser's SpeechSynthesis API via package:web.
 
 import 'package:web/web.dart' as web;
-import 'dart:js_interop';
 
 // Cache a preferred voice to avoid repeated selection and voiceschanged timing issues
 web.SpeechSynthesisVoice? _cachedFemaleVoice;
 
 web.SpeechSynthesisVoice? _pickFemaleVoice(web.SpeechSynthesis synth, {String? lang}) {
   try {
-    final voices = synth.getVoices().toDart;
-    if (voices.isEmpty) return null;
+    final voices = synth.getVoices();
+    if ((voices.length) == 0) return null;
 
     web.SpeechSynthesisVoice? best;
     var bestScore = -9999;
@@ -20,7 +19,8 @@ web.SpeechSynthesisVoice? _pickFemaleVoice(web.SpeechSynthesis synth, {String? l
       'google uk english female',
     ];
 
-    for (final v in voices) {
+    for (var i = 0; i < voices.length; i++) {
+      final v = voices[i];
       final name = (v.name).toLowerCase();
       final vlang = (v.lang).toLowerCase();
       var score = 0;
@@ -28,6 +28,7 @@ web.SpeechSynthesisVoice? _pickFemaleVoice(web.SpeechSynthesis synth, {String? l
       if (lang != null && vlang.startsWith(lang.toLowerCase())) score += 8;
       if (vlang.contains('us')) score += 5;
       if (femaleHints.any((h) => name.contains(h))) score += 50;
+      // Prefer Google voices a bit for quality
       if (name.contains('google')) score += 3;
       if (score > bestScore) { best = v; bestScore = score; }
     }
@@ -41,21 +42,30 @@ Future<bool> ttsPlatformSpeak(String text, {String? lang, double? rate, double? 
   try {
     final synth = web.window.speechSynthesis;
 
-    // Prepare utterance
-    final u = web.SpeechSynthesisUtterance(text);
+    // Prepare utterance (set text explicitly for widest compatibility)
+    final u = web.SpeechSynthesisUtterance();
+    u.text = text;
     if (lang != null) u.lang = lang;
-    if (rate != null) u.rate = rate.clamp(0.1, 2.0).toDouble();
+    if (rate != null) {
+      // Web rate range ~0.1..10, map similar values
+      u.rate = rate.clamp(0.1, 2.0).toDouble();
+    }
     if (pitch != null) u.pitch = pitch.clamp(0.1, 2.0).toDouble();
 
     // Cancel any ongoing speech before starting
     if (synth.speaking == true) synth.cancel();
 
     // Pick and cache a female voice if available
-    _cachedFemaleVoice ??= _pickFemaleVoice(synth, lang: lang);
+    if (_cachedFemaleVoice == null) {
+      _cachedFemaleVoice = _pickFemaleVoice(synth, lang: lang);
+    }
+    // Only set voice if we have a valid one (avoid null assignment issues)
     if (_cachedFemaleVoice != null) {
       try {
         u.voice = _cachedFemaleVoice;
-      } catch (_) {}
+      } catch (e) {
+        // Some browsers may have issues with voice assignment, continue without it
+      }
     }
     synth.speak(u);
     return true;

@@ -25,9 +25,9 @@ class VoiceCoachService {
   String? _name; // Preferred name
   String? _phonetic; // Optional phonetic spelling
   String? _voiceIdentifier; // Platform voice name/id
-  final String _language = 'en-US';
-  final double _rate = 0.95; // Natural pacing
-  final double _pitch = 1.03; // Slightly bright
+  String _language = 'en-US';
+  double _rate = 0.95; // Natural pacing
+  double _pitch = 1.03; // Slightly bright
   DateTime _lastUtter = DateTime.fromMillisecondsSinceEpoch(0);
   bool _introSpokenThisSession = false; // prevent repeating welcome
 

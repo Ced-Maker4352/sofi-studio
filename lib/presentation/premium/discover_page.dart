@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sofi_test_connect/data/theme_presets_data.dart';
 import 'package:sofi_test_connect/models/theme_presets.dart';
 import 'package:sofi_test_connect/presentation/sofi_studio/sofi_style_presets.dart';
-import 'package:sofi_test_connect/services/storage_service.dart';
 
 class DiscoverPage extends StatelessWidget {
   final void Function(ThemePreset theme)? onThemeSelected;
@@ -205,100 +204,61 @@ class _FeaturedBanner extends StatelessWidget {
                 ),
               ),
             ),
-            // Content - tightly constrained to avoid overflow
-            Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    // Adjust spacing based on available height
-                    final availableHeight = constraints.maxHeight;
-                    final isTight = availableHeight < 150;
-                    final isVeryTight = availableHeight < 140;
-                    
-                    final titleSize = isVeryTight ? 18.0 : (isTight ? 20.0 : 24.0);
-                    final subtitleSize = isVeryTight ? 11.0 : (isTight ? 12.0 : 13.0);
-                    final ctaVPad = isVeryTight ? 4.0 : (isTight ? 5.0 : 6.0);
-                    final chipVPad = isVeryTight ? 2.0 : (isTight ? 3.0 : 4.0);
-                    final verticalSpacing = isVeryTight ? 4.0 : (isTight ? 6.0 : 8.0);
-                    final midSpacing = isVeryTight ? 6.0 : (isTight ? 8.0 : 10.0);
-
-                    // Ensure the banner content never overflows by scaling down if needed
-                    return FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: chipVPad),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.auto_awesome, size: 12, color: Colors.amber),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Featured',
-                                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: verticalSpacing),
-                          Text(
-                            theme?.label ?? 'Explore Styles',
-                            style: TextStyle(
-                              fontSize: titleSize,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            theme?.description ?? 'Discover new looks',
-                            style: TextStyle(
-                              fontSize: subtitleSize,
-                              color: Colors.white.withValues(alpha: 0.9),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          SizedBox(height: midSpacing),
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 14, vertical: ctaVPad),
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Try Now',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                SizedBox(width: 4),
-                                Icon(Icons.arrow_forward, size: 12, color: Colors.white),
-                              ],
-                            ),
-                          ),
-                        ],
+            // Content
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      '✨ Featured',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    theme?.label ?? 'Explore Styles',
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    theme?.description ?? 'Discover new looks',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withValues(alpha: 0.9),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      'Try Now →',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -387,12 +347,11 @@ class _StylePresetChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = preset['icon'] as String? ?? '';
+    final icon = preset['icon'] as String? ?? '✨';
     final label = preset['label'] as String? ?? 'Style';
-    final key = (preset['key'] as String? ?? label).toString().toLowerCase();
     
     // Generate a color based on label
-    final colors = _getColorsForStyle(key, label);
+    final colors = _getColorsForStyle(label);
     
     return GestureDetector(
       onTap: onTap,
@@ -416,7 +375,7 @@ class _StylePresetChip extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _getIconForStyle(icon, key, label),
+            Text(icon, style: const TextStyle(fontSize: 32)),
             const SizedBox(height: 8),
             Text(
               label,
@@ -435,59 +394,17 @@ class _StylePresetChip extends StatelessWidget {
     );
   }
   
-  Widget _getIconForStyle(String icon, String key, String label) {
-    // Use Material icons instead of emoji characters
-    IconData iconData;
-    switch (key) {
-      case 'clean_girl':
+  List<Color> _getColorsForStyle(String label) {
+    switch (label.toLowerCase()) {
       case 'clean girl':
-      case 'clean girl neutral set':
-        iconData = Icons.spa;
-        break;
-      case 'y2k':
-      case 'y2k style':
-      case 'pastel y2k set':
-        iconData = Icons.star;
-        break;
-      case 'street_minimal':
-      case 'street minimal':
-        iconData = Icons.location_city;
-        break;
-      case 'soft_girl':
-      case 'soft girl':
-      case 'soft girl aesthetic':
-        iconData = Icons.favorite;
-        break;
-      case 'academia':
-      case 'academia aesthetic':
-        iconData = Icons.menu_book;
-        break;
-      default:
-        iconData = Icons.auto_awesome;
-    }
-    return Icon(iconData, size: 32, color: Colors.white);
-  }
-  
-  List<Color> _getColorsForStyle(String key, String label) {
-    final k = key.isNotEmpty ? key : label.toLowerCase();
-    switch (k) {
-      case 'clean_girl':
-      case 'clean girl':
-      case 'clean girl neutral set':
         return [const Color(0xFFF5E6D3), const Color(0xFFE8D4C4)];
-      case 'y2k':
       case 'y2k style':
-      case 'pastel y2k set':
         return [const Color(0xFF7DD3FC), const Color(0xFFC4B5FD)];
-      case 'street_minimal':
       case 'street minimal':
         return [const Color(0xFF374151), const Color(0xFF1F2937)];
-      case 'soft_girl':
       case 'soft girl':
-      case 'soft girl aesthetic':
         return [const Color(0xFFFBCFE8), const Color(0xFFF9A8D4)];
       case 'academia':
-      case 'academia aesthetic':
         return [const Color(0xFF92400E), const Color(0xFF78350F)];
       default:
         return [const Color(0xFFA78BFA), const Color(0xFF8B5CF6)];
@@ -495,7 +412,7 @@ class _StylePresetChip extends StatelessWidget {
   }
 }
 
-/// Theme card for grid - uses Firebase Storage images
+/// Theme card for grid
 class _ThemeCard extends StatelessWidget {
   final ThemePreset theme;
   final bool isPremium;
@@ -534,11 +451,17 @@ class _ThemeCard extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   if (theme.assetPath != null)
-                    _FirebaseThemeImage(
-                      path: theme.assetPath!,
-                      localAssetPath: theme.localAssetPath,
-                      fallbackColor: _getColorForTheme(theme.id),
-                      fallbackIcon: _getIconForTheme(theme.id),
+                    Image.asset(
+                      theme.assetPath!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: _getColorForTheme(theme.id),
+                        child: Icon(
+                          _getIconForTheme(theme.id),
+                          color: Colors.white.withValues(alpha: 0.5),
+                          size: 48,
+                        ),
+                      ),
                     )
                   else
                     Container(
@@ -581,12 +504,12 @@ class _ThemeCard extends StatelessWidget {
                           ),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.star, size: 12, color: Colors.black),
-                            SizedBox(width: 4),
-                            Text(
+                            const Icon(Icons.star, size: 12, color: Colors.black),
+                            const SizedBox(width: 4),
+                            const Text(
                               'PRO',
                               style: TextStyle(
                                 fontSize: 10,
@@ -703,118 +626,5 @@ class _ThemeCard extends StatelessWidget {
       default:
         return Icons.palette;
     }
-  }
-}
-
-/// Firebase image loader for theme thumbnails
-class _FirebaseThemeImage extends StatefulWidget {
-  final String path;
-  final String? localAssetPath;
-  final Color fallbackColor;
-  final IconData fallbackIcon;
-  
-  const _FirebaseThemeImage({
-    required this.path,
-    this.localAssetPath,
-    required this.fallbackColor,
-    required this.fallbackIcon,
-  });
-
-  @override
-  State<_FirebaseThemeImage> createState() => _FirebaseThemeImageState();
-}
-
-class _FirebaseThemeImageState extends State<_FirebaseThemeImage> {
-  String? _url;
-  bool _loading = true;
-  bool _error = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadImage();
-  }
-
-  @override
-  void didUpdateWidget(_FirebaseThemeImage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.path != oldWidget.path) {
-      _loadImage();
-    }
-  }
-
-  Future<void> _loadImage() async {
-    setState(() {
-      _loading = true;
-      _error = false;
-    });
-
-    try {
-      final url = await StorageService.instance.getDownloadUrlSafe(widget.path);
-      if (mounted) {
-        setState(() {
-          _url = url;
-          if (url == null) _error = true;
-        });
-      }
-    } catch (e) {
-      if (mounted) setState(() => _error = true);
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_loading) {
-      return Container(
-        color: widget.fallbackColor,
-        child: Center(
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation(Colors.white.withValues(alpha: 0.7)),
-          ),
-        ),
-      );
-    }
-
-    if (_error || _url == null) {
-      // Try local asset fallback if provided
-      if (widget.localAssetPath != null) {
-        return Image.asset(
-          widget.localAssetPath!,
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => Container(
-            color: widget.fallbackColor,
-            child: Icon(
-              widget.fallbackIcon,
-              color: Colors.white.withValues(alpha: 0.5),
-              size: 48,
-            ),
-          ),
-        );
-      }
-      return Container(
-        color: widget.fallbackColor,
-        child: Icon(
-          widget.fallbackIcon,
-          color: Colors.white.withValues(alpha: 0.5),
-          size: 48,
-        ),
-      );
-    }
-
-    return Image.network(
-      _url!,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(
-        color: widget.fallbackColor,
-        child: Icon(
-          widget.fallbackIcon,
-          color: Colors.white.withValues(alpha: 0.5),
-          size: 48,
-        ),
-      ),
-    );
   }
 }

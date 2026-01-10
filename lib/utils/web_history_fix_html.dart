@@ -67,14 +67,14 @@ void _patchHistoryMethods() {
     final origReplace = js_util.getProperty(history, 'replaceState');
 
     // Wrapper that enforces a non-null state with serialCount
-    dynamic wrapFn(dynamic original) => js.allowInterop((dynamic data, dynamic title, dynamic url) {
+    dynamic _wrap(dynamic original) => js.allowInterop((dynamic data, dynamic title, dynamic url) {
       final patched = _ensureStateMap(data);
       // Call original with proper 'this' bound to history
       return js_util.callMethod(original, 'call', [history, patched, title, url]);
     });
 
-    js_util.setProperty(history, 'pushState', wrapFn(origPush));
-    js_util.setProperty(history, 'replaceState', wrapFn(origReplace));
+    js_util.setProperty(history, 'pushState', _wrap(origPush));
+    js_util.setProperty(history, 'replaceState', _wrap(origReplace));
   } catch (e) {
     // If monkey-patching fails, we still have other guards.
   }

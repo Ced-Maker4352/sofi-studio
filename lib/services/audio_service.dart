@@ -97,9 +97,7 @@ class AudioService {
       _hasLocalAssets = false;
       debugPrint('[Audio] Init failed: $e');
     }
-    for (var i = 0; i < 4; i++) {
-      _players.add(AudioPlayer());
-    }
+    for (var i = 0; i < 4; i++) _players.add(AudioPlayer());
     _loopPlayer = AudioPlayer();
     _musicPlayer = AudioPlayer();
 

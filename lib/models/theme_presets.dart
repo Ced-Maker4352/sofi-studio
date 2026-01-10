@@ -12,10 +12,6 @@ class ThemePreset {
   final String description;
   final String basePrompt;
   final String? assetPath;
-  // Optional local asset used as a fallback when Firebase Storage is unavailable
-  // (e.g., FlutLab or restricted web environments). This keeps thumbnails
-  // consistent across platforms.
-  final String? localAssetPath;
   final List<ThemeVariant> variants;
   final bool isPremium;
   final String? packId;
@@ -26,7 +22,6 @@ class ThemePreset {
     required this.description,
     required this.basePrompt,
     this.assetPath,
-    this.localAssetPath,
     required this.variants,
     required this.isPremium,
     this.packId,
